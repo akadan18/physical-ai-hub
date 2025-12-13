@@ -8142,7 +8142,7 @@ const PhysicalAIFramework = () => {
         <div className="bg-gray-800 text-white p-3 rounded-t-xl flex justify-between items-center cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
           <div className="flex items-center gap-2">
             <span className="font-bold">🤖 AI Assistant</span>
-            <span className="text-xs bg-blue-500 px-2 py-0.5 rounded text-white hidden md:inline-block">Gemini 2.0 Flash</span>
+            <span className="text-xs bg-purple-600 px-2 py-0.5 rounded text-white hidden md:inline-block">Gemini 3.0 Pro</span>
           </div>
           <div className="flex items-center gap-2">
             <button
