@@ -15,6 +15,12 @@ const PhysicalAIFramework = () => {
   const [useCaseLayerFilter, setUseCaseLayerFilter] = useState('all');
   const [useCaseImpactFilter, setUseCaseImpactFilter] = useState('all');
 
+  // Chat state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+
   // ============================================
   // CORE DATA STRUCTURES
   // ============================================
@@ -652,66 +658,86 @@ const PhysicalAIFramework = () => {
   // ============================================
 
   const squeezeData = {
-    construction: { aiPressure: 65, autonomyPressure: 45, bottlenecks: [
-      { name: 'Fragmented Trades', severity: 85, description: 'Multiple subcontractors, no unified data model' },
-      { name: 'Legacy Assets', severity: 60, description: 'Diesel equipment without connectivity' },
-      { name: 'Workforce Resistance', severity: 70, description: 'Union concerns, skills gaps' },
-      { name: 'Permitting/Regulations', severity: 55, description: 'Local codes, inspections, safety requirements' },
-    ]},
-    datacenters: { aiPressure: 85, autonomyPressure: 40, bottlenecks: [
-      { name: 'Power Constraints', severity: 90, description: 'Grid connections, renewable mandates' },
-      { name: 'Cooling Limits', severity: 80, description: 'Air vs liquid, density constraints' },
-      { name: 'Integration Debt', severity: 50, description: 'IT/facilities silos, DCIM limitations' },
-    ]},
-    discrete: { aiPressure: 75, autonomyPressure: 70, bottlenecks: [
-      { name: 'Vendor Lock-in', severity: 75, description: 'Proprietary PLCs, closed ecosystems' },
-      { name: 'Legacy Assets', severity: 70, description: '20+ year old equipment without APIs' },
-      { name: 'IT/OT Divide', severity: 65, description: 'Separate networks, different teams' },
-      { name: 'Change Management', severity: 55, description: 'Production pressure, risk aversion' },
-    ]},
-    process: { aiPressure: 70, autonomyPressure: 40, bottlenecks: [
-      { name: 'GMP/Regulatory', severity: 95, description: 'Every change needs validation, audit trails' },
-      { name: 'Legacy DCS', severity: 85, description: '20-year-old Honeywell/Emerson systems' },
-      { name: 'IT/OT Divide', severity: 80, description: 'Air-gapped networks, Purdue model' },
-      { name: 'Data Quality', severity: 65, description: 'Historian gaps, manual batch records' },
-      { name: 'Change Management', severity: 60, description: 'Risk-averse culture, operator skepticism' },
-    ]},
-    aerospace: { aiPressure: 75, autonomyPressure: 65, bottlenecks: [
-      { name: 'Security/Classification', severity: 90, description: 'ITAR, clearances, air-gapped systems' },
-      { name: 'Certification', severity: 85, description: 'DO-178C, flight safety requirements' },
-      { name: 'Supply Chain', severity: 70, description: '18-month lead times, single sources' },
-      { name: 'Legacy Platforms', severity: 65, description: '40-year-old aircraft, long service lives' },
-    ]},
-    energy: { aiPressure: 70, autonomyPressure: 55, bottlenecks: [
-      { name: 'Remote Locations', severity: 75, description: 'Offshore, arctic, desert–connectivity limited' },
-      { name: 'Legacy SCADA', severity: 70, description: 'Proprietary protocols, security concerns' },
-      { name: 'Reservoir Uncertainty', severity: 65, description: 'Subsurface complexity, model limitations' },
-      { name: 'HSE Requirements', severity: 60, description: 'Safety-critical, zone classifications' },
-    ]},
-    utilities: { aiPressure: 65, autonomyPressure: 35, bottlenecks: [
-      { name: 'Regulatory Recovery', severity: 90, description: 'Rate cases, prudency reviews for AI spend' },
-      { name: 'Legacy Grid', severity: 85, description: '50-year-old infrastructure, one-way design' },
-      { name: 'IT/OT Divide', severity: 75, description: 'NERC CIP, air gaps, separate orgs' },
-      { name: 'Workforce', severity: 70, description: 'Aging lineworkers, skills gaps' },
-    ]},
-    maritime: { aiPressure: 55, autonomyPressure: 45, bottlenecks: [
-      { name: 'Union Resistance', severity: 80, description: 'Longshoremen, seafarer unions' },
-      { name: 'Connectivity', severity: 70, description: 'VSAT limitations, bandwidth costs' },
-      { name: 'IMO Regulations', severity: 65, description: 'Safety, emissions, Manning requirements' },
-      { name: 'Legacy Vessels', severity: 60, description: '25-year ship lives, retrofit challenges' },
-    ]},
-    land: { aiPressure: 70, autonomyPressure: 75, bottlenecks: [
-      { name: 'Regulatory Approval', severity: 75, description: 'AV certification, state-by-state' },
-      { name: 'Labor Relations', severity: 65, description: 'Teamsters, warehouse unions' },
-      { name: 'Infrastructure', severity: 55, description: 'Charging, ODD limitations' },
-      { name: 'Integration', severity: 50, description: 'TMS/WMS fragmentation' },
-    ]},
-    mining: { aiPressure: 65, autonomyPressure: 70, bottlenecks: [
-      { name: 'Remote Operations', severity: 80, description: 'Connectivity, harsh environments' },
-      { name: 'Legacy Equipment', severity: 70, description: 'Diverse OEM fleets, proprietary systems' },
-      { name: 'Workforce', severity: 65, description: 'Remote locations, skills gaps' },
-      { name: 'Permitting', severity: 60, description: 'Environmental reviews, community relations' },
-    ]},
+    construction: {
+      aiPressure: 65, autonomyPressure: 45, bottlenecks: [
+        { name: 'Fragmented Trades', severity: 85, description: 'Multiple subcontractors, no unified data model' },
+        { name: 'Legacy Assets', severity: 60, description: 'Diesel equipment without connectivity' },
+        { name: 'Workforce Resistance', severity: 70, description: 'Union concerns, skills gaps' },
+        { name: 'Permitting/Regulations', severity: 55, description: 'Local codes, inspections, safety requirements' },
+      ]
+    },
+    datacenters: {
+      aiPressure: 85, autonomyPressure: 40, bottlenecks: [
+        { name: 'Power Constraints', severity: 90, description: 'Grid connections, renewable mandates' },
+        { name: 'Cooling Limits', severity: 80, description: 'Air vs liquid, density constraints' },
+        { name: 'Integration Debt', severity: 50, description: 'IT/facilities silos, DCIM limitations' },
+      ]
+    },
+    discrete: {
+      aiPressure: 75, autonomyPressure: 70, bottlenecks: [
+        { name: 'Vendor Lock-in', severity: 75, description: 'Proprietary PLCs, closed ecosystems' },
+        { name: 'Legacy Assets', severity: 70, description: '20+ year old equipment without APIs' },
+        { name: 'IT/OT Divide', severity: 65, description: 'Separate networks, different teams' },
+        { name: 'Change Management', severity: 55, description: 'Production pressure, risk aversion' },
+      ]
+    },
+    process: {
+      aiPressure: 70, autonomyPressure: 40, bottlenecks: [
+        { name: 'GMP/Regulatory', severity: 95, description: 'Every change needs validation, audit trails' },
+        { name: 'Legacy DCS', severity: 85, description: '20-year-old Honeywell/Emerson systems' },
+        { name: 'IT/OT Divide', severity: 80, description: 'Air-gapped networks, Purdue model' },
+        { name: 'Data Quality', severity: 65, description: 'Historian gaps, manual batch records' },
+        { name: 'Change Management', severity: 60, description: 'Risk-averse culture, operator skepticism' },
+      ]
+    },
+    aerospace: {
+      aiPressure: 75, autonomyPressure: 65, bottlenecks: [
+        { name: 'Security/Classification', severity: 90, description: 'ITAR, clearances, air-gapped systems' },
+        { name: 'Certification', severity: 85, description: 'DO-178C, flight safety requirements' },
+        { name: 'Supply Chain', severity: 70, description: '18-month lead times, single sources' },
+        { name: 'Legacy Platforms', severity: 65, description: '40-year-old aircraft, long service lives' },
+      ]
+    },
+    energy: {
+      aiPressure: 70, autonomyPressure: 55, bottlenecks: [
+        { name: 'Remote Locations', severity: 75, description: 'Offshore, arctic, desert–connectivity limited' },
+        { name: 'Legacy SCADA', severity: 70, description: 'Proprietary protocols, security concerns' },
+        { name: 'Reservoir Uncertainty', severity: 65, description: 'Subsurface complexity, model limitations' },
+        { name: 'HSE Requirements', severity: 60, description: 'Safety-critical, zone classifications' },
+      ]
+    },
+    utilities: {
+      aiPressure: 65, autonomyPressure: 35, bottlenecks: [
+        { name: 'Regulatory Recovery', severity: 90, description: 'Rate cases, prudency reviews for AI spend' },
+        { name: 'Legacy Grid', severity: 85, description: '50-year-old infrastructure, one-way design' },
+        { name: 'IT/OT Divide', severity: 75, description: 'NERC CIP, air gaps, separate orgs' },
+        { name: 'Workforce', severity: 70, description: 'Aging lineworkers, skills gaps' },
+      ]
+    },
+    maritime: {
+      aiPressure: 55, autonomyPressure: 45, bottlenecks: [
+        { name: 'Union Resistance', severity: 80, description: 'Longshoremen, seafarer unions' },
+        { name: 'Connectivity', severity: 70, description: 'VSAT limitations, bandwidth costs' },
+        { name: 'IMO Regulations', severity: 65, description: 'Safety, emissions, Manning requirements' },
+        { name: 'Legacy Vessels', severity: 60, description: '25-year ship lives, retrofit challenges' },
+      ]
+    },
+    land: {
+      aiPressure: 70, autonomyPressure: 75, bottlenecks: [
+        { name: 'Regulatory Approval', severity: 75, description: 'AV certification, state-by-state' },
+        { name: 'Labor Relations', severity: 65, description: 'Teamsters, warehouse unions' },
+        { name: 'Infrastructure', severity: 55, description: 'Charging, ODD limitations' },
+        { name: 'Integration', severity: 50, description: 'TMS/WMS fragmentation' },
+      ]
+    },
+    mining: {
+      aiPressure: 65, autonomyPressure: 70, bottlenecks: [
+        { name: 'Remote Operations', severity: 80, description: 'Connectivity, harsh environments' },
+        { name: 'Legacy Equipment', severity: 70, description: 'Diverse OEM fleets, proprietary systems' },
+        { name: 'Workforce', severity: 65, description: 'Remote locations, skills gaps' },
+        { name: 'Permitting', severity: 60, description: 'Environmental reviews, community relations' },
+      ]
+    },
   };
 
   const bottleneckDefinitions = [
@@ -981,7 +1007,7 @@ const PhysicalAIFramework = () => {
       tagline: 'The AI Operating System for Industrial Enterprises',
       color: 'blue',
       presence: palantirPresence,
-      
+
       strategy: {
         thesis: 'Become the "AI Operating System" that sits between enterprise data and operational decisions. Own the ontology layer that maps all enterprise data into a unified model, then deploy AI applications on top.',
         play: 'Land with data integration pain (AIP/Foundry), expand by proving operational value through custom applications, then lock in with enterprise-wide ontology that becomes impossible to rip out.',
@@ -1030,7 +1056,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Machine Health Intelligence Platform',
       color: 'orange',
       presence: auguryPresence,
-      
+
       strategy: {
         thesis: 'Own the "machine health" category by building the largest proprietary dataset of industrial equipment sensor data, then evolve into a Sensor Fusion Model that predicts equipment behavior across all asset types.',
         play: 'Land with predictive maintenance (immediate ROI from avoiding downtime), expand to full machine health visibility, then leverage data moat to build AI models that competitors cannot replicate.',
@@ -1077,7 +1103,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Enterprise AI Application Platform',
       color: 'blue',
       presence: c3aiPresence,
-      
+
       strategy: {
         thesis: 'Become the enterprise AI operating system by providing both the platform (C3 Agentic AI Platform) and pre-built applications (130+ turnkey apps) that accelerate AI deployment in asset-intensive industries.',
         play: 'Land with proven applications (Reliability, Supply Chain Optimization, Energy Management), expand to platform licensing for custom AI development, then become the enterprise AI standard.',
@@ -1125,7 +1151,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Industrial DataOps Platform',
       color: 'teal',
       presence: cognitePresence,
-      
+
       strategy: {
         thesis: 'Own the industrial data layer by solving the "data liberation" problem–contextualizing and connecting siloed OT/IT data so AI and analytics can actually work. Become the data foundation that all industrial AI applications build on.',
         play: 'Land by solving the #1 blocker to industrial AI: bad/missing/siloed data. Cognite Data Fusion contextualizes data from historians, ERP, sensors, and documents into a unified industrial data model. Then expand as the platform for all analytics and AI.',
@@ -1172,7 +1198,7 @@ const PhysicalAIFramework = () => {
       tagline: 'General-Purpose Robot Foundation Models',
       color: 'purple',
       presence: physicalIntelligencePresence,
-      
+
       strategy: {
         thesis: 'Build the "GPT for robots"–a general-purpose foundation model (π0) that enables any robot to perform dexterous manipulation tasks, trained on massive multi-robot datasets. Become the AI brain that powers billions of robots.',
         play: 'Develop Vision-Language-Action (VLA) models that combine internet-scale pretraining with real-world robot data. Open-source base models to drive adoption, then monetize through enterprise licensing and fine-tuning services.',
@@ -1220,7 +1246,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Robotics Foundation Model for Warehouses',
       color: 'green',
       presence: covariantPresence,
-      
+
       strategy: {
         thesis: 'Build the largest real-world robot manipulation dataset through deployed warehouse robots, then train foundation models (RFM-1) that enable human-like reasoning for any warehouse task.',
         play: 'Deploy picking robots at scale to collect massive multimodal dataset (tens of millions of trajectories). Use this data moat to train 8B parameter RFM-1 that competitors cannot replicate.',
@@ -1266,7 +1292,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Defense Autonomy Platform',
       color: 'slate',
       presence: andurilPresence,
-      
+
       strategy: {
         thesis: 'Transform defense with AI-powered autonomous systems by building both the software platform (Lattice) and the hardware (drones, submarines, missiles) that legacy primes cannot deliver at startup speed.',
         play: 'Lattice OS becomes the "operating system for war"–connecting sensors, shooters, and commanders across all domains. Hardware products generate revenue and prove the platform. Arsenal factories enable mass production.',
@@ -1315,7 +1341,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Embodied AI for Autonomous Driving',
       color: 'purple',
       presence: wayvePresence,
-      
+
       strategy: {
         thesis: 'Build the "GPT for driving"–end-to-end learned AI that adapts to any vehicle, any city, without HD maps or hand-coded rules. Embodied AI that learns from experience is the only scalable path to global autonomous driving.',
         play: 'License foundation model to OEMs as "AI Driver" software stack. Start with ADAS (L2+), upgrade to full autonomy (L4) via OTA as models improve. Hardware-agnostic, mapless approach enables rapid global scaling.',
@@ -1363,7 +1389,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Self-Driving Trucks at Scale',
       color: 'orange',
       presence: auroraPresence,
-      
+
       strategy: {
         thesis: 'Solve the trucking labor crisis with autonomous trucks that operate 20 hours/day. Crawl-walk-run approach: prove safety on limited routes, then expand systematically. Build the platform, partner for hardware.',
         play: 'Aurora Driver becomes the "brain" for autonomous trucks. OEM partnerships (Volvo, PACCAR) for hardware. Carrier partnerships (FedEx, Schneider, Uber Freight) for demand. Operate as carrier first, then driver-as-a-service.',
@@ -1410,7 +1436,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Software-Defined Manufacturing',
       color: 'green',
       presence: brightMachinesPresence,
-      
+
       strategy: {
         thesis: 'Manufacturing is the last frontier of software transformation. "Software-defined microfactories" enable 2x faster deployment, 75% more throughput, and AI-powered continuous improvement.',
         play: 'Full-stack solution: Brightware software + Bright Robotic Cells (BRCs) + services. Focus on AI hardware manufacturing (servers, GPUs) where demand is explosive and precision critical.',
@@ -1457,7 +1483,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Retrofit Autonomy for Construction',
       color: 'amber',
       presence: bedrockRoboticsPresence,
-      
+
       strategy: {
         thesis: 'Construction faces 500K worker shortage with 40% retiring in 10 years. Retrofit autonomy (not new equipment) is the fastest path to solving the labor crisis while preserving fleet investments.',
         play: 'Same-day, reversible hardware installs on existing excavators/dozers/loaders. AI trained on thousands of hours of earthmoving. Operator-less operation by 2026.',
@@ -1503,7 +1529,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Shared Autonomy for Forklifts',
       color: 'teal',
       presence: thirdWavePresence,
-      
+
       strategy: {
         thesis: '"Shared Autonomy" is smarter than full autonomy for warehouses. AI handles 90%+ of tasks; human operators assist with edge cases remotely. Get ROI from day one, improve continuously.',
         play: 'Autonomous high-reach forklifts that operate in 4 modes: fully autonomous, remote assist, remote operation, manual. One operator manages multiple forklifts. Toyota Industries partnership for scale.',
@@ -1551,7 +1577,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Physical AI for Warehouse Productivity',
       color: 'blue',
       presence: locusPresence,
-      
+
       strategy: {
         thesis: 'Warehouse AMRs that deliver 2-3x productivity gains by working collaboratively with human workers. RaaS model enables rapid scaling and PeakFLEX seasonal flexibility.',
         play: 'LocusONE platform orchestrates mixed fleet of Origin/Vector/Max AMRs for any warehouse size. Add bots during peak, return after–true elasticity in automation.',
@@ -1599,7 +1625,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Windows for Industrial Robots',
       color: 'purple',
       presence: symbioPresence,
-      
+
       strategy: {
         thesis: 'Industrial robots run proprietary, inflexible code. Symbio brings modern software practices (Python, ML, real-time control) to make robots faster, smarter, and more flexible.',
         play: 'SymbioDCS middleware enables existing robots to learn new tasks via AI. Retrofit intelligence onto installed base. "Windows for DOS" of manufacturing automation.',
@@ -1645,7 +1671,7 @@ const PhysicalAIFramework = () => {
       tagline: 'AI-Enabled Supply Chain Revolution',
       color: 'green',
       presence: symboticPresence,
-      
+
       strategy: {
         thesis: 'End-to-end, AI-powered robotics platform that reinvents distribution centers. Dense storage + autonomous bots + software intelligence = transformational warehouse economics.',
         play: 'Greenfield and brownfield DC automation for mega-retailers. Now expanding to micro-fulfillment (APD) via Walmart acquisition. Own the physical backbone of retail.',
@@ -1693,7 +1719,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Industrial-Scale Digital Manufacturing',
       color: 'red',
       presence: vulcanformsPresence,
-      
+
       strategy: {
         thesis: 'Additive manufacturing at industrial scale through 100kW laser systems (250x more power than competitors). Full-stack digital production from design to final part.',
         play: 'Own the factories, not just sell machines. VulcanOne facility has 2MW+ laser capacity. Produce parts as a service for aerospace, defense, semiconductor.',
@@ -1740,7 +1766,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Industrial AI Copilot for Maintenance',
       color: 'teal',
       presence: tractianPresence,
-      
+
       strategy: {
         thesis: 'Predictive maintenance as the wedge to industrial AI copilot. Sensors + CMMS + AI = prescriptive maintenance that tells you what to fix before it breaks.',
         play: 'Land with vibration/temperature sensors on critical rotating equipment. Expand to full CMMS. Become the AI copilot for maintenance professionals.',
@@ -1787,7 +1813,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Physical AI Foundation Model for Real-World Intelligence',
       color: 'purple',
       presence: archetypePresence,
-      
+
       strategy: {
         thesis: 'Foundation model for the physical world. Newton learns physics from raw sensor data without pre-programmed knowledge, enabling AI that understands and predicts real-world behavior.',
         play: 'Build the "GPT for sensors" - a foundation model that fuses multimodal sensor data with natural language. Enable enterprises to deploy Physical Agents that understand real-world environments.',
@@ -1834,7 +1860,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Visual AI for Manufacturing Quality',
       color: 'blue',
       presence: landingAIPresence,
-      
+
       strategy: {
         thesis: 'Data-centric AI for visual inspection. Small datasets + domain expertise = production-ready vision models. Democratize computer vision for manufacturing.',
         play: 'Enable non-AI experts to build visual inspection solutions with minimal data. Low-code/no-code interface that puts ownership in users hands.',
@@ -1881,7 +1907,7 @@ const PhysicalAIFramework = () => {
       tagline: 'AI-Powered Workplace Safety & Risk Prevention',
       color: 'green',
       presence: voxelPresence,
-      
+
       strategy: {
         thesis: 'Transform existing security cameras into intelligent safety monitoring systems. Prevent workplace incidents before they happen through real-time computer vision.',
         play: 'Land with safety/EHS teams frustrated by reactive incident response. Integrate with existing camera infrastructure (no new hardware). Deliver real-time hazard detection and operational insights.',
@@ -1928,7 +1954,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Data & Observability Platform for Physical AI',
       color: 'orange',
       presence: foxglovePresence,
-      
+
       strategy: {
         thesis: 'Build the "AWS for robotics data" - the infrastructure layer every Physical AI company needs but shouldn\'t build themselves. Data collection, visualization, and observability for autonomous systems.',
         play: 'Become the standard data stack for robotics development. Start with visualization tools, expand to full data lifecycle: collection, storage, analysis, ML training.',
@@ -1975,7 +2001,7 @@ const PhysicalAIFramework = () => {
       tagline: 'Wafer-Scale AI Chips: The Fastest AI Infrastructure',
       color: 'red',
       presence: cerebrasPresence,
-      
+
       strategy: {
         thesis: 'Escape GPU limitations through wafer-scale integration. Build the largest AI chip possible (entire wafer = one chip) to eliminate memory bandwidth bottlenecks.',
         play: 'Provide 20x faster AI inference than NVIDIA GPUs for enterprises demanding real-time AI. Training and inference for frontier models without distributed computing complexity.',
@@ -2472,44 +2498,44 @@ const PhysicalAIFramework = () => {
       taxonomy: {
         title: 'Traditional Intelligence vs AI Intelligence',
         categories: [
-          { 
-            name: 'Physics & Simulation', 
+          {
+            name: 'Physics & Simulation',
             traditional: 'First-principles CFD, FEA, thermodynamic models (ANSYS, COMSOL). Months to build, days to run. Highly interpretable but slow.',
             modern: 'Physics-informed neural networks, neural surrogates. Learn physics from simulation + operational data. 100-1000x faster inference.',
             examples: ['ANSYS → NVIDIA Modulus', 'COMSOL → PhysicsX', 'In-house models → Siemens HEEDS AI']
           },
-          { 
-            name: 'Forecasting & Prediction', 
+          {
+            name: 'Forecasting & Prediction',
             traditional: 'ARIMA, exponential smoothing, regression models. Hand-tuned per use case. Limited to univariate or simple multivariate.',
             modern: 'Time-series foundation models, deep learning forecasters. Pre-trained, transfer across domains. Handle complex multivariate patterns.',
             examples: ['Excel forecasts → Google TimesFM', 'SAS → Amazon Chronos', 'Custom ARIMA → Nixtla TimeGPT']
           },
-          { 
-            name: 'Quality & Inspection', 
+          {
+            name: 'Quality & Inspection',
             traditional: 'Statistical Process Control (SPC), rule-based machine vision, sampling plans, human inspectors.',
             modern: 'Deep learning vision, zero-shot anomaly detection, 100% automated inspection, predictive quality.',
             examples: ['Manual inspection → Cognex ViDi', 'Rule-based AOI → Landing AI', 'SPC → Instrumental']
           },
-          { 
-            name: 'Anomaly Detection', 
+          {
+            name: 'Anomaly Detection',
             traditional: 'Threshold-based alarms, control charts, expert pattern recognition. High false positive rates.',
             modern: 'Multi-modal sensor fusion, unsupervised learning, contextual anomaly detection. AI learns normal behavior.',
             examples: ['Alarm flooding → Augury', 'Manual analysis → Uptake', 'Thresholds → SparkCognition']
           },
-          { 
-            name: 'Optimization & Scheduling', 
+          {
+            name: 'Optimization & Scheduling',
             traditional: 'Linear programming, mixed-integer solvers, heuristics, rules-based scheduling. Optimal for defined constraints.',
             modern: 'Reinforcement learning, AI-enhanced optimization, continuous re-optimization. Adapts to changing conditions.',
             examples: ['Static MRP → o9 Solutions', 'Manual scheduling → Google OR-Tools + AI', 'Heuristics → Gurobi ML']
           },
-          { 
-            name: 'Expert Knowledge', 
+          {
+            name: 'Expert Knowledge',
             traditional: 'Tribal knowledge, expert systems, decision trees, SOPs. Resides in experienced workers\' heads.',
             modern: 'LLMs trained on domain knowledge, AI copilots, knowledge graphs. Captures and scales expertise.',
             examples: ['Tribal knowledge → Claude/GPT fine-tuned', 'Expert systems → Palantir AIP', 'SOPs → AI assistants']
           },
-          { 
-            name: 'Scientific Discovery', 
+          {
+            name: 'Scientific Discovery',
             traditional: 'Wet lab experimentation, QSAR models, molecular dynamics, trial-and-error. Years per discovery.',
             modern: 'Foundation models for molecules, proteins, materials. AI-guided experimentation. 10-100x acceleration.',
             examples: ['Lab experiments → AlphaFold', 'QSAR → EvolutionaryScale ESM3', 'Trial & error → Isomorphic Labs']
@@ -2534,38 +2560,38 @@ const PhysicalAIFramework = () => {
       taxonomy: {
         title: 'Types of Supply Chain Systems',
         categories: [
-          { 
-            name: 'Demand Planning & Forecasting', 
+          {
+            name: 'Demand Planning & Forecasting',
             traditional: 'Excel-based forecasts, ERP statistical forecasting modules',
             modern: 'AI demand sensing from POS, weather, social signals; ML forecasting',
             examples: ['Blue Yonder', 'o9 Solutions', 'Kinaxis', 'SAP IBP']
           },
-          { 
-            name: 'Supply Chain Planning (SCP)', 
+          {
+            name: 'Supply Chain Planning (SCP)',
             traditional: 'Batch MRP/DRP runs, monthly S&OP cycles',
             modern: 'Continuous planning, concurrent optimization, scenario simulation',
             examples: ['Kinaxis RapidResponse', 'Blue Yonder Luminate', 'o9 Digital Brain']
           },
-          { 
-            name: 'Transportation Management (TMS)', 
+          {
+            name: 'Transportation Management (TMS)',
             traditional: 'Manual load planning, static routing, phone/fax dispatch',
             modern: 'AI route optimization, real-time replanning, dynamic pricing',
             examples: ['project44', 'FourKites', 'Transporeon', 'Blue Yonder TMS']
           },
-          { 
-            name: 'Warehouse Management (WMS)', 
+          {
+            name: 'Warehouse Management (WMS)',
             traditional: 'Paper pick lists, fixed slotting, basic RF scanning',
             modern: 'AI slotting optimization, robotic orchestration, vision-guided picking',
             examples: ['Manhattan Associates', 'Blue Yonder WMS', 'Körber', 'SAP EWM']
           },
-          { 
-            name: 'Procurement & Sourcing', 
+          {
+            name: 'Procurement & Sourcing',
             traditional: 'RFQ spreadsheets, annual supplier reviews, manual spend analysis',
             modern: 'AI spend analytics, supplier risk monitoring, autonomous sourcing',
             examples: ['Coupa', 'Jaggaer', 'SAP Ariba', 'GEP']
           },
-          { 
-            name: 'Control Towers & Visibility', 
+          {
+            name: 'Control Towers & Visibility',
             traditional: 'EDI-based tracking, carrier portals, manual exception handling',
             modern: 'Real-time multi-tier visibility, predictive ETAs, AI exception management',
             examples: ['project44', 'FourKites', 'Overhaul', 'Tive']
@@ -2590,38 +2616,38 @@ const PhysicalAIFramework = () => {
       taxonomy: {
         title: 'Types of Enterprise Systems',
         categories: [
-          { 
-            name: 'ERP Systems', 
+          {
+            name: 'ERP Systems',
             traditional: 'On-premise ERP, batch processing, monolithic architecture',
             modern: 'Cloud ERP, real-time transactions, modular/composable architecture',
             examples: ['SAP S/4HANA', 'Oracle Cloud', 'Microsoft Dynamics', 'Infor CloudSuite']
           },
-          { 
-            name: 'Manufacturing Execution (MES)', 
+          {
+            name: 'Manufacturing Execution (MES)',
             traditional: 'On-premise MES, paper-based tracking, batch data collection',
             modern: 'Cloud MES, real-time genealogy, integrated quality, AI-ready',
             examples: ['Rockwell Plex', 'Siemens Opcenter', 'DELMIA', 'Tulip']
           },
-          { 
-            name: 'Quality Management (QMS)', 
+          {
+            name: 'Quality Management (QMS)',
             traditional: 'Paper-based quality records, reactive CAPA, manual audits',
             modern: 'Digital QMS, predictive quality, AI-powered CAPA, real-time SPC',
             examples: ['Veeva Vault', 'MasterControl', 'ETQ Reliance', 'Sparta TrackWise']
           },
-          { 
-            name: 'Enterprise Data Platforms', 
+          {
+            name: 'Enterprise Data Platforms',
             traditional: 'On-premise data warehouses, ETL batch jobs, BI reports',
             modern: 'Cloud data lakes, real-time streaming, ML feature stores',
             examples: ['Snowflake', 'Databricks', 'Google BigQuery', 'AWS Redshift']
           },
-          { 
-            name: 'Operational Intelligence Platforms', 
+          {
+            name: 'Operational Intelligence Platforms',
             traditional: 'Custom dashboards, Excel analysis, siloed reporting',
             modern: 'AI-powered operational platforms, ontology-based integration, decisioning',
             examples: ['Palantir Foundry', 'C3.ai', 'Seeq', 'Sight Machine']
           },
-          { 
-            name: 'Asset Performance Management (APM)', 
+          {
+            name: 'Asset Performance Management (APM)',
             traditional: 'CMMS for work orders, time-based maintenance schedules',
             modern: 'AI-powered APM, predictive maintenance, asset health scoring',
             examples: ['IBM Maximo', 'SAP APM', 'GE APM', 'Bentley AssetWise']
@@ -2646,38 +2672,38 @@ const PhysicalAIFramework = () => {
       taxonomy: {
         title: 'Types of Operations Systems',
         categories: [
-          { 
-            name: 'Production Scheduling', 
+          {
+            name: 'Production Scheduling',
             traditional: 'Weekly MRP explosion, static schedules, manual sequencing',
             modern: 'AI-optimized scheduling, real-time replanning, constraint-based',
             examples: ['Siemens Opcenter APS', 'DELMIA Ortems', 'Asprova', 'PlanetTogether']
           },
-          { 
-            name: 'Batch/Recipe Management', 
+          {
+            name: 'Batch/Recipe Management',
             traditional: 'Fixed recipes in DCS, manual parameter entry, paper batch records',
             modern: 'Adaptive recipes, AI-optimized parameters, electronic batch records',
             examples: ['Emerson DeltaV Batch', 'Rockwell FactoryTalk Batch', 'Siemens SIMATIC']
           },
-          { 
-            name: 'Quality Execution', 
+          {
+            name: 'Quality Execution',
             traditional: 'End-of-line inspection, lab sampling, reactive SPC',
             modern: 'In-line AI inspection, real-time SPC, predictive quality',
             examples: ['Hexagon Q-DAS', 'InfinityQS', 'Sight Machine', 'Instrumental']
           },
-          { 
-            name: 'OEE & Performance Management', 
+          {
+            name: 'OEE & Performance Management',
             traditional: 'Manual OEE calculation, shift reports, Excel analysis',
             modern: 'Real-time OEE, AI-identified loss drivers, automated root cause',
             examples: ['Sight Machine', 'Rockwell Plex', 'Tulip', 'MachineMetrics']
           },
-          { 
-            name: 'SCADA / HMI', 
+          {
+            name: 'SCADA / HMI',
             traditional: 'Proprietary SCADA, static screens, alarm flooding',
             modern: 'Web-based HMI, situational awareness displays, AI-prioritized alarms',
             examples: ['Inductive Automation Ignition', 'AVEVA System Platform', 'GE iFIX']
           },
-          { 
-            name: 'Digital Work Instructions', 
+          {
+            name: 'Digital Work Instructions',
             traditional: 'Paper SOPs, tribal knowledge, static training',
             modern: 'Interactive digital instructions, AR guidance, AI-assisted troubleshooting',
             examples: ['Tulip', 'Poka', 'Dozuki', 'PTC Vuforia']
@@ -2702,38 +2728,38 @@ const PhysicalAIFramework = () => {
       taxonomy: {
         title: 'Types of Control Hardware & Software',
         categories: [
-          { 
-            name: 'Programmable Logic Controllers (PLC)', 
+          {
+            name: 'Programmable Logic Controllers (PLC)',
             traditional: 'Proprietary PLCs, ladder logic, vendor-locked programming',
             modern: 'Soft PLCs, IEC 61131-3 standard, virtualized control',
             examples: ['Siemens S7', 'Rockwell ControlLogix', 'ABB AC500', 'Schneider Modicon']
           },
-          { 
-            name: 'Distributed Control Systems (DCS)', 
+          {
+            name: 'Distributed Control Systems (DCS)',
             traditional: 'Monolithic DCS, proprietary protocols, 15-20 year lifecycles',
             modern: 'Open DCS, Ethernet-based, cloud-connected, software-upgradable',
             examples: ['Emerson DeltaV', 'Honeywell Experion', 'ABB 800xA', 'Yokogawa CENTUM']
           },
-          { 
-            name: 'Motion & Robotics Controllers', 
+          {
+            name: 'Motion & Robotics Controllers',
             traditional: 'Proprietary robot controllers, teach pendant programming',
             modern: 'Universal robot platforms, AI-powered motion, cloud-connected',
             examples: ['Fanuc', 'KUKA', 'ABB Robotics', 'Universal Robots', 'Rockwell Kinetix']
           },
-          { 
-            name: 'Edge Computing Platforms', 
+          {
+            name: 'Edge Computing Platforms',
             traditional: 'No edge layer–direct PLC/DCS to enterprise',
             modern: 'Industrial edge devices running AI inference, data preprocessing',
             examples: ['AWS Outposts', 'Azure Stack Edge', 'Siemens Industrial Edge', 'NVIDIA Jetson']
           },
-          { 
-            name: 'Industrial Networks', 
+          {
+            name: 'Industrial Networks',
             traditional: 'Proprietary fieldbus (Profibus, DeviceNet), isolated networks',
             modern: 'Industrial Ethernet (Profinet, EtherNet/IP), IT/OT convergence, TSN',
             examples: ['Cisco Industrial', 'Moxa', 'Hirschmann', 'Belden']
           },
-          { 
-            name: 'Safety Systems', 
+          {
+            name: 'Safety Systems',
             traditional: 'Hardwired safety relays, separate safety PLCs',
             modern: 'Integrated safety PLCs (SIL-rated), safety over Ethernet',
             examples: ['Rockwell GuardLogix', 'Siemens S7 F-Series', 'ABB Safety PLC']
@@ -2758,44 +2784,44 @@ const PhysicalAIFramework = () => {
       taxonomy: {
         title: 'Types of Sensing Technologies',
         categories: [
-          { 
-            name: 'Process Instrumentation', 
+          {
+            name: 'Process Instrumentation',
             traditional: 'Analog 4-20mA sensors, periodic calibration, single-variable',
             modern: 'Smart sensors with diagnostics, digital protocols (HART, Foundation Fieldbus)',
             examples: ['Emerson Rosemount', 'Endress+Hauser', 'Siemens', 'Honeywell']
           },
-          { 
-            name: 'Vibration & Condition Monitoring', 
+          {
+            name: 'Vibration & Condition Monitoring',
             traditional: 'Portable vibration analyzers, periodic routes, manual analysis',
             modern: 'Continuous wireless monitoring, AI-powered diagnostics, PdM platforms',
             examples: ['Augury', 'SKF', 'Emerson AMS', 'Pruftechnik', 'Bently Nevada']
           },
-          { 
-            name: 'Machine Vision Systems', 
+          {
+            name: 'Machine Vision Systems',
             traditional: 'Rule-based AOI, template matching, lighting-sensitive',
             modern: 'Deep learning vision, zero-shot defect detection, multi-spectral',
             examples: ['Cognex', 'Keyence', 'Landing AI', 'Instrumental', 'Elementary']
           },
-          { 
-            name: 'Thermal & Infrared', 
+          {
+            name: 'Thermal & Infrared',
             traditional: 'Handheld thermal cameras, periodic inspections',
             modern: 'Continuous thermal monitoring, AI hotspot detection, drone-mounted',
             examples: ['FLIR', 'InfraTec', 'Teledyne', 'DJI Thermal']
           },
-          { 
-            name: 'Acoustic & Ultrasonic', 
+          {
+            name: 'Acoustic & Ultrasonic',
             traditional: 'Handheld leak detectors, periodic surveys',
             modern: 'Continuous acoustic monitoring, AI-powered leak detection, steam trap analysis',
             examples: ['Acoustic monitoring systems', 'FLIR acoustic imagers', 'SDT Ultrasound']
           },
-          { 
-            name: 'Position & Metrology', 
+          {
+            name: 'Position & Metrology',
             traditional: 'CMM measurement (offline), manual gauging, sampling inspection',
             modern: 'In-line laser scanning, real-time CMM, 100% inspection',
             examples: ['Hexagon', 'Zeiss', 'Keyence', 'GOM (Zeiss)', 'FARO']
           },
-          { 
-            name: 'Environmental & Emissions', 
+          {
+            name: 'Environmental & Emissions',
             traditional: 'CEMS point monitoring, periodic stack testing',
             modern: 'Continuous emissions monitoring, satellite methane detection, fence-line',
             examples: ['Honeywell Gas Detection', 'GHGSat', 'Permian MAP', 'Project Canary']
@@ -2820,38 +2846,38 @@ const PhysicalAIFramework = () => {
       taxonomy: {
         title: 'Types of Physical Assets',
         categories: [
-          { 
-            name: 'Production Equipment', 
+          {
+            name: 'Production Equipment',
             traditional: 'Standalone machines, manual operation, limited connectivity',
             modern: 'Connected machines, OEM digital twins, remote diagnostics',
             examples: ['CNC machines', 'Injection molders', 'Packaging lines', 'Reactors', 'Furnaces']
           },
-          { 
-            name: 'Industrial Robots', 
+          {
+            name: 'Industrial Robots',
             traditional: 'Fixed automation, caged robots, teach pendant programming',
             modern: 'Collaborative robots, AI-enabled manipulation, cloud-connected',
             examples: ['Fanuc', 'KUKA', 'ABB', 'Universal Robots', 'Boston Dynamics Stretch']
           },
-          { 
-            name: 'Mobile Equipment', 
+          {
+            name: 'Mobile Equipment',
             traditional: 'Manually operated forklifts, trucks, mobile equipment',
             modern: 'Autonomous mobile robots (AMRs), autonomous trucks, telematics-equipped',
             examples: ['Toyota forklifts', 'Cat mining trucks', 'Locus AMRs', 'Aurora trucks']
           },
-          { 
-            name: 'Process Equipment', 
+          {
+            name: 'Process Equipment',
             traditional: 'Reactors, columns, heat exchangers designed for 30+ year life',
             modern: 'Modular process equipment, skid-mounted systems, intensified processes',
             examples: ['Vessels', 'Distillation columns', 'Heat exchangers', 'Centrifuges']
           },
-          { 
-            name: 'Rotating Equipment', 
+          {
+            name: 'Rotating Equipment',
             traditional: 'Pumps, compressors, motors with periodic maintenance',
             modern: 'Smart pumps with embedded sensors, variable speed drives, PdM-ready',
             examples: ['Flowserve', 'Sulzer', 'Grundfos', 'Atlas Copco', 'Siemens motors']
           },
-          { 
-            name: 'Infrastructure', 
+          {
+            name: 'Infrastructure',
             traditional: 'Passive infrastructure–buildings, utilities, roads',
             modern: 'Smart buildings, connected infrastructure, digital twins',
             examples: ['HVAC systems', 'Electrical distribution', 'Piping networks', 'Storage']
@@ -2876,38 +2902,38 @@ const PhysicalAIFramework = () => {
       taxonomy: {
         title: 'Types of Industrial Roles',
         categories: [
-          { 
-            name: 'Operators & Technicians', 
+          {
+            name: 'Operators & Technicians',
             traditional: 'Manual machine operation, paper-based procedures, tribal knowledge',
             modern: 'AI-assisted operation, digital work instructions, AR guidance',
             examples: ['Machine operators', 'Process operators', 'Control room operators', 'Lab techs']
           },
-          { 
-            name: 'Maintenance & Reliability', 
+          {
+            name: 'Maintenance & Reliability',
             traditional: 'Time-based PM schedules, reactive repairs, paper work orders',
             modern: 'Condition-based maintenance, AI-prioritized work orders, AR-guided repair',
             examples: ['Maintenance techs', 'Reliability engineers', 'Instrument techs', 'Electricians']
           },
-          { 
-            name: 'Quality & Inspection', 
+          {
+            name: 'Quality & Inspection',
             traditional: 'Manual inspection, sampling plans, paper records',
             modern: 'AI-assisted inspection, automated measurement, digital quality records',
             examples: ['Quality inspectors', 'QC technicians', 'NDT specialists', 'CMM operators']
           },
-          { 
-            name: 'Engineering & Technical', 
+          {
+            name: 'Engineering & Technical',
             traditional: 'CAD/CAE tools, manual analysis, experience-based design',
             modern: 'AI-assisted design, generative engineering, simulation copilots',
             examples: ['Process engineers', 'Controls engineers', 'Manufacturing engineers', 'Designers']
           },
-          { 
-            name: 'Supervision & Management', 
+          {
+            name: 'Supervision & Management',
             traditional: 'Manual scheduling, clipboard management, gut-feel decisions',
             modern: 'AI-optimized scheduling, real-time dashboards, data-driven decisions',
             examples: ['Shift supervisors', 'Production managers', 'Plant managers', 'Operations directors']
           },
-          { 
-            name: 'Field Service & Support', 
+          {
+            name: 'Field Service & Support',
             traditional: 'On-site troubleshooting, manual diagnostics, experience-dependent',
             modern: 'Remote diagnostics, AI-guided troubleshooting, predictive dispatch',
             examples: ['Field service techs', 'Commissioning engineers', 'Service managers']
@@ -3167,17 +3193,17 @@ const PhysicalAIFramework = () => {
       icon: '🎯',
       question: 'How many industries do you serve?',
       options: [
-        { 
-          id: 'horizontal', 
-          name: 'Horizontal', 
+        {
+          id: 'horizontal',
+          name: 'Horizontal',
           description: 'Serve multiple industries with same core product',
           pros: ['Larger TAM', 'Data diversity improves models', 'Not tied to one industry cycle'],
           cons: ['Jack of all trades risk', 'Higher GTM complexity', 'Less domain depth'],
           examples: ['Palantir', 'C3 AI', 'Augury', 'Databricks']
         },
-        { 
-          id: 'vertical', 
-          name: 'Vertical', 
+        {
+          id: 'vertical',
+          name: 'Vertical',
           description: 'Go deep in one industry',
           pros: ['Deep domain expertise', 'Trusted partner status', 'Word-of-mouth in community'],
           cons: ['TAM ceiling', 'Industry concentration risk', 'Horizontal players may add your vertical'],
@@ -3191,17 +3217,17 @@ const PhysicalAIFramework = () => {
       icon: '🏭',
       question: 'Do you target existing assets or new ones?',
       options: [
-        { 
-          id: 'brownfield', 
-          name: 'Brownfield (Retrofit)', 
+        {
+          id: 'brownfield',
+          name: 'Brownfield (Retrofit)',
           description: 'Add intelligence to existing installed base',
           pros: ['95%+ of assets already deployed', 'Faster sales cycle', 'Lower customer capex'],
           cons: ['Integration with legacy systems', 'OEMs may add capability to new equipment', 'Heterogeneous installed base'],
           examples: ['Augury', 'Samsara', 'Motive', 'Petasense', 'Bedrock Robotics']
         },
-        { 
-          id: 'greenfield', 
-          name: 'Greenfield (New)', 
+        {
+          id: 'greenfield',
+          name: 'Greenfield (New)',
           description: 'Build or enable new AI-native assets',
           pros: ['Clean-sheet design', 'No legacy constraints', 'Higher performance ceiling'],
           cons: ['Smaller immediate TAM', 'Tied to capex cycles', 'Longer sales cycles'],
@@ -3215,17 +3241,17 @@ const PhysicalAIFramework = () => {
       icon: '📚',
       question: 'Do you include hardware in your offering?',
       options: [
-        { 
-          id: 'softwareOnly', 
-          name: 'Software-Only', 
+        {
+          id: 'softwareOnly',
+          name: 'Software-Only',
           description: 'Pure software/AI, no hardware',
           pros: ['Higher margins', 'Faster iteration', 'Lower capital requirements'],
           cons: ['Dependent on hardware partners', 'Less control over full experience', 'Easier to replicate'],
           examples: ['Palantir', 'C3 AI', 'Cognite', 'Procore']
         },
-        { 
-          id: 'hardwareInclusive', 
-          name: 'Hardware-Inclusive', 
+        {
+          id: 'hardwareInclusive',
+          name: 'Hardware-Inclusive',
           description: 'Include hardware (sensors, devices, robots)',
           pros: ['Control full stack', 'Hardware creates physical moat', 'Better data capture'],
           cons: ['Capital intensive', 'Manufacturing complexity', 'Lower gross margins on hardware'],
@@ -3239,25 +3265,25 @@ const PhysicalAIFramework = () => {
       icon: '🚀',
       question: 'How do you reach customers?',
       options: [
-        { 
-          id: 'bottomUp', 
-          name: 'Bottom-Up', 
+        {
+          id: 'bottomUp',
+          name: 'Bottom-Up',
           description: 'Land with users/practitioners, expand to enterprise',
           pros: ['Faster initial traction', 'Product-market fit signal', 'Lower CAC initially'],
           cons: ['May plateau without enterprise motion', 'Procurement can block expansion', 'Harder in regulated industries'],
           examples: ['Samsara', 'Tulip', 'Databricks', 'Weights & Biases']
         },
-        { 
-          id: 'topDown', 
-          name: 'Top-Down', 
+        {
+          id: 'topDown',
+          name: 'Top-Down',
           description: 'Sell to executives, deploy across organization',
           pros: ['Larger initial deals', 'Executive sponsorship', 'Faster enterprise rollout'],
           cons: ['Long sales cycles', 'High CAC', 'Risk of shelfware'],
           examples: ['Palantir', 'C3 AI', 'Anduril', 'Procore']
         },
-        { 
-          id: 'oemEmbedded', 
-          name: 'OEM / Embedded', 
+        {
+          id: 'oemEmbedded',
+          name: 'OEM / Embedded',
           description: 'Sell through equipment manufacturers or integrators',
           pros: ['Leverage existing distribution', 'Lower GTM cost', 'Built into purchase decision'],
           cons: ['Margin pressure from OEM', 'Less direct customer relationship', 'Dependent on partner success'],
@@ -3271,25 +3297,25 @@ const PhysicalAIFramework = () => {
       icon: '🤖',
       question: 'What role does AI play in your offering?',
       options: [
-        { 
-          id: 'aiEnhanced', 
-          name: 'AI-Enhanced', 
+        {
+          id: 'aiEnhanced',
+          name: 'AI-Enhanced',
           description: 'AI improves existing workflows/products',
           pros: ['Easier adoption', 'Clear ROI story', 'Less technical risk'],
           cons: ['Differentiation may erode', 'Incumbents can add AI too', 'Not transformational'],
           examples: ['Most industrial software adding AI features']
         },
-        { 
-          id: 'aiNative', 
-          name: 'AI-Native', 
+        {
+          id: 'aiNative',
+          name: 'AI-Native',
           description: 'AI is the core product, not a feature',
           pros: ['Stronger differentiation', 'Data flywheel compounds', 'Harder to replicate'],
           cons: ['Requires AI talent', 'May need more data to start', 'Buyer education needed'],
           examples: ['Augury', 'C3 AI', 'Physical Intelligence']
         },
-        { 
-          id: 'fmPowered', 
-          name: 'FM-Powered', 
+        {
+          id: 'fmPowered',
+          name: 'FM-Powered',
           description: 'Built on foundation models (yours or others)',
           pros: ['Leverage pre-trained capabilities', 'Faster development', 'Transfer learning benefits'],
           cons: ['Dependent on FM provider (if using others)', 'Differentiation at application layer', 'FM costs/availability'],
@@ -3301,51 +3327,51 @@ const PhysicalAIFramework = () => {
 
   // Example Company Classifications
   const companyClassifications = [
-    { 
-      company: 'Augury', 
-      model: 'platform', 
+    {
+      company: 'Augury',
+      model: 'platform',
       modifiers: { scope: 'horizontal', assetFocus: 'brownfield', stack: 'hardwareInclusive', gtm: 'bottomUp', aiPositioning: 'aiNative' },
       summary: 'Platform + Horizontal + Brownfield + Hardware-Inclusive + Bottom-up + AI-Native'
     },
-    { 
-      company: 'Anduril', 
-      model: 'integratedProduct', 
+    {
+      company: 'Anduril',
+      model: 'integratedProduct',
       modifiers: { scope: 'vertical', assetFocus: 'greenfield', stack: 'hardwareInclusive', gtm: 'topDown', aiPositioning: 'aiNative' },
       summary: 'Integrated Product + Vertical (Defense) + Greenfield + Hardware + Top-down + AI-Native'
     },
-    { 
-      company: 'Physical Intelligence', 
-      model: 'foundationModel', 
+    {
+      company: 'Physical Intelligence',
+      model: 'foundationModel',
       modifiers: { scope: 'horizontal', assetFocus: 'greenfield', stack: 'softwareOnly', gtm: 'oemEmbedded', aiPositioning: 'fmPowered' },
       summary: 'Foundation Model + Horizontal + Software-only + OEM/Embedded + FM-Powered'
     },
-    { 
-      company: 'Procore', 
-      model: 'platform', 
+    {
+      company: 'Procore',
+      model: 'platform',
       modifiers: { scope: 'vertical', assetFocus: 'brownfield', stack: 'softwareOnly', gtm: 'topDown', aiPositioning: 'aiEnhanced' },
       summary: 'Platform + Vertical (Construction) + Brownfield + Software-only + Top-down'
     },
-    { 
-      company: 'Samsara', 
-      model: 'platform', 
+    {
+      company: 'Samsara',
+      model: 'platform',
       modifiers: { scope: 'horizontal', assetFocus: 'brownfield', stack: 'hardwareInclusive', gtm: 'bottomUp', aiPositioning: 'aiNative' },
       summary: 'Platform + Started Vertical → Horizontal + Brownfield + Hardware + Bottom-up'
     },
-    { 
-      company: 'Cognite', 
-      model: 'infrastructure', 
+    {
+      company: 'Cognite',
+      model: 'infrastructure',
       modifiers: { scope: 'horizontal', assetFocus: 'brownfield', stack: 'softwareOnly', gtm: 'topDown', aiPositioning: 'aiNative' },
       summary: 'Infrastructure + Horizontal + Brownfield + Software-only + Top-down'
     },
-    { 
-      company: 'Flexport', 
-      model: 'marketplace', 
+    {
+      company: 'Flexport',
+      model: 'marketplace',
       modifiers: { scope: 'vertical', assetFocus: 'brownfield', stack: 'softwareOnly', gtm: 'topDown', aiPositioning: 'aiEnhanced' },
       summary: 'Marketplace + Vertical (Logistics) + Software-only + Top-down'
     },
-    { 
-      company: 'Figure', 
-      model: 'integratedProduct', 
+    {
+      company: 'Figure',
+      model: 'integratedProduct',
       modifiers: { scope: 'horizontal', assetFocus: 'greenfield', stack: 'hardwareInclusive', gtm: 'topDown', aiPositioning: 'fmPowered' },
       summary: 'Integrated Product + Horizontal + Greenfield + Hardware + Top-down + FM-Powered'
     },
@@ -3780,9 +3806,8 @@ const PhysicalAIFramework = () => {
           className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-gray-300"
         >
           <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-              matrixView === 'concise' ? 'translate-x-6' : 'translate-x-1'
-            }`}
+            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${matrixView === 'concise' ? 'translate-x-6' : 'translate-x-1'
+              }`}
           />
         </button>
         <span className={`text-sm font-medium ${matrixView === 'concise' ? 'text-gray-900' : 'text-gray-400'}`}>Concise</span>
@@ -3858,8 +3883,8 @@ const PhysicalAIFramework = () => {
                       const cellKey = `${layer.id}-${v.id}`;
                       const cellData = data[cellKey];
                       return (
-                        <td 
-                          key={cellKey} 
+                        <td
+                          key={cellKey}
                           className={`p-2 border align-top ${layerColors[layer.id]} hover:bg-white cursor-pointer transition-colors`}
                           onClick={() => setSelectedBattle(selectedBattle === cellKey ? null : cellKey)}
                         >
@@ -4074,7 +4099,7 @@ const PhysicalAIFramework = () => {
       {/* 3-Column Side-by-Side Layout */}
       <div className="overflow-x-auto">
         <div className="flex gap-4" style={{ minWidth: '1600px' }}>
-          
+
           {/* COLUMN 1: Current Layers */}
           <div className="flex-1 min-w-[500px]">
             <div className="bg-gray-800 text-white text-center py-2 rounded-t-lg font-bold">
@@ -4139,7 +4164,7 @@ const PhysicalAIFramework = () => {
               🔮 FUTURE STATE: Layer Collapse
             </div>
             <div className="border-2 border-t-0 border-gray-300 rounded-b-lg p-3 bg-gray-50">
-              
+
               {/* AI Collapse (Top) */}
               <div className="bg-indigo-50 border border-indigo-300 rounded-lg p-3 mb-3">
                 <div className="text-center mb-2">
@@ -4227,7 +4252,7 @@ const PhysicalAIFramework = () => {
 
   const LayersTab = () => {
     const layerInfo = layerTaxonomy[selectedLayer];
-    
+
     return (
       <div className="space-y-6">
         {/* Layer Selector */}
@@ -4236,11 +4261,10 @@ const PhysicalAIFramework = () => {
             <button
               key={l.id}
               onClick={() => setSelectedLayer(l.id)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedLayer === l.id
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedLayer === l.id
                   ? `${layerColorsDark[l.id]} text-white`
                   : `${layerColors[l.id]} border-2 hover:opacity-80`
-              }`}
+                }`}
             >
               {l.id}: {l.name}
             </button>
@@ -4362,7 +4386,7 @@ const PhysicalAIFramework = () => {
 
   const IndustriesTab = () => {
     const industry = industryData[selectedVertical];
-    
+
     return (
       <div className="space-y-6">
         {/* Industry Selector */}
@@ -4371,11 +4395,10 @@ const PhysicalAIFramework = () => {
             <button
               key={v.id}
               onClick={() => setSelectedVertical(v.id)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                selectedVertical === v.id
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedVertical === v.id
                   ? 'bg-gray-800 text-white'
                   : 'bg-white border hover:bg-gray-50'
-              }`}
+                }`}
             >
               {v.name}
             </button>
@@ -4413,7 +4436,7 @@ const PhysicalAIFramework = () => {
                     <div className="text-sm text-purple-700">{layer.theme}</div>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-white rounded p-3">
                     <div className="font-semibold text-blue-700 mb-2">Incumbents</div>
@@ -4445,7 +4468,7 @@ const PhysicalAIFramework = () => {
         {/* Buyers & Sales Motion */}
         <div className="space-y-4">
           <h3 className="font-bold text-lg">Who Buys & Who Uses</h3>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
@@ -4480,7 +4503,7 @@ const PhysicalAIFramework = () => {
                 <li>• <strong>Proof:</strong> {industry.salesMotion.topDown.proof}</li>
               </ul>
             </div>
-            
+
             <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
               <h4 className="font-bold text-green-800 mb-3">{industry.salesMotion.bottomUp.title}</h4>
               <ul className="text-sm space-y-2">
@@ -4562,11 +4585,10 @@ const PhysicalAIFramework = () => {
       <div className="bg-white rounded-lg p-4 border shadow-sm hover:shadow-md transition-shadow">
         <div className="flex items-start justify-between mb-2">
           <h4 className="font-bold text-sm text-gray-800">{useCase.title}</h4>
-          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-            useCase.impact === 'Transformational' ? 'bg-red-100 text-red-700' :
-            useCase.impact === 'High' ? 'bg-orange-100 text-orange-700' :
-            'bg-yellow-100 text-yellow-700'
-          }`}>
+          <span className={`text-xs px-2 py-1 rounded-full font-medium ${useCase.impact === 'Transformational' ? 'bg-red-100 text-red-700' :
+              useCase.impact === 'High' ? 'bg-orange-100 text-orange-700' :
+                'bg-yellow-100 text-yellow-700'
+            }`}>
             {useCase.impact}
           </span>
         </div>
@@ -4621,25 +4643,22 @@ const PhysicalAIFramework = () => {
               <div className="flex gap-1">
                 <button
                   onClick={() => setUseCaseView('byIndustry')}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                    useCaseView === 'byIndustry' ? 'bg-gray-800 text-white' : 'bg-white border hover:bg-gray-100'
-                  }`}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${useCaseView === 'byIndustry' ? 'bg-gray-800 text-white' : 'bg-white border hover:bg-gray-100'
+                    }`}
                 >
                   By Industry
                 </button>
                 <button
                   onClick={() => setUseCaseView('byLayer')}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                    useCaseView === 'byLayer' ? 'bg-gray-800 text-white' : 'bg-white border hover:bg-gray-100'
-                  }`}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${useCaseView === 'byLayer' ? 'bg-gray-800 text-white' : 'bg-white border hover:bg-gray-100'
+                    }`}
                 >
                   By Layer
                 </button>
                 <button
                   onClick={() => setUseCaseView('matrix')}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                    useCaseView === 'matrix' ? 'bg-gray-800 text-white' : 'bg-white border hover:bg-gray-100'
-                  }`}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${useCaseView === 'matrix' ? 'bg-gray-800 text-white' : 'bg-white border hover:bg-gray-100'
+                    }`}
                 >
                   Matrix
                 </button>
@@ -4801,8 +4820,8 @@ const PhysicalAIFramework = () => {
                           const count = industryUseCases.filter(uc => uc.layers.includes(l.id)).length;
                           const useCasesForCell = industryUseCases.filter(uc => uc.layers.includes(l.id));
                           return (
-                            <td 
-                              key={l.id} 
+                            <td
+                              key={l.id}
                               className={`border p-2 text-center ${count > 0 ? 'cursor-pointer hover:bg-purple-100' : ''}`}
                               title={useCasesForCell.map(uc => uc.title).join('\n')}
                             >
@@ -4811,12 +4830,11 @@ const PhysicalAIFramework = () => {
                                   <span className="font-bold text-purple-700">{count}</span>
                                   <div className="flex gap-0.5 mt-1">
                                     {useCasesForCell.slice(0, 3).map((uc, i) => (
-                                      <span 
-                                        key={i} 
-                                        className={`w-2 h-2 rounded-full ${
-                                          uc.impact === 'Transformational' ? 'bg-red-500' :
-                                          uc.impact === 'High' ? 'bg-orange-500' : 'bg-yellow-500'
-                                        }`}
+                                      <span
+                                        key={i}
+                                        className={`w-2 h-2 rounded-full ${uc.impact === 'Transformational' ? 'bg-red-500' :
+                                            uc.impact === 'High' ? 'bg-orange-500' : 'bg-yellow-500'
+                                          }`}
                                       />
                                     ))}
                                     {useCasesForCell.length > 3 && <span className="text-xs text-gray-400">+{useCasesForCell.length - 3}</span>}
@@ -4912,7 +4930,7 @@ const PhysicalAIFramework = () => {
       gtm: 'bottomUp',
       aiPositioning: 'aiNative',
     });
-    
+
     return (
       <div className="space-y-6">
         {/* Page Header */}
@@ -4953,11 +4971,10 @@ const PhysicalAIFramework = () => {
               <button
                 key={m.id}
                 onClick={() => setSelectedModel(m.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedModel === m.id
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedModel === m.id
                     ? `${m.colorDark} text-white`
                     : `${m.color} border-2 hover:opacity-80`
-                }`}
+                  }`}
               >
                 {m.icon} {m.name}
               </button>
@@ -5020,9 +5037,8 @@ const PhysicalAIFramework = () => {
               </h3>
               <div className="flex flex-wrap gap-2">
                 {model.layerFit.map((l, i) => (
-                  <span key={i} className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                    layerColors[l] || 'bg-gray-200'
-                  }`}>
+                  <span key={i} className={`px-3 py-1 rounded-lg text-sm font-medium ${layerColors[l] || 'bg-gray-200'
+                    }`}>
                     {l}
                   </span>
                 ))}
@@ -5113,7 +5129,7 @@ const PhysicalAIFramework = () => {
         <div className="bg-purple-50 rounded-lg border-2 border-purple-300 p-4">
           <h3 className="font-bold text-lg mb-4 text-center">Tier 2: Configure Your Modifiers</h3>
           <p className="text-sm text-gray-600 text-center mb-4">Select options for each dimension to customize your strategy</p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.values(strategyModifiers).map((modifier) => (
               <div key={modifier.id} className="bg-white rounded-lg p-4 border">
@@ -5125,12 +5141,11 @@ const PhysicalAIFramework = () => {
                   {modifier.options.map((opt) => (
                     <button
                       key={opt.id}
-                      onClick={() => setActiveModifiers({...activeModifiers, [modifier.id]: opt.id})}
-                      className={`w-full text-left p-2 rounded text-xs transition-colors ${
-                        activeModifiers[modifier.id] === opt.id
+                      onClick={() => setActiveModifiers({ ...activeModifiers, [modifier.id]: opt.id })}
+                      className={`w-full text-left p-2 rounded text-xs transition-colors ${activeModifiers[modifier.id] === opt.id
                           ? 'bg-purple-600 text-white'
                           : 'bg-gray-100 hover:bg-gray-200'
-                      }`}
+                        }`}
                     >
                       <div className="font-semibold">{opt.name}</div>
                       <div className={`${activeModifiers[modifier.id] === opt.id ? 'text-purple-200' : 'text-gray-500'}`}>
@@ -5214,8 +5229,8 @@ const PhysicalAIFramework = () => {
               </thead>
               <tbody>
                 {Object.values(businessModels).map((m) => (
-                  <tr 
-                    key={m.id} 
+                  <tr
+                    key={m.id}
                     className={`${m.id === selectedModel ? m.color : 'hover:bg-gray-50'} cursor-pointer`}
                     onClick={() => setSelectedModel(m.id)}
                   >
@@ -5278,8 +5293,8 @@ const PhysicalAIFramework = () => {
                       <td className="border p-2">
                         <div className="flex flex-wrap gap-1">
                           {fit?.best.map((m, i) => (
-                            <span 
-                              key={i} 
+                            <span
+                              key={i}
                               className={`${businessModels[m]?.color || 'bg-gray-100'} px-2 py-0.5 rounded text-xs cursor-pointer hover:opacity-80 border`}
                               onClick={() => setSelectedModel(m)}
                             >
@@ -5312,7 +5327,7 @@ const PhysicalAIFramework = () => {
                 <div className="flex flex-wrap gap-2 items-center">
                   <span className="text-gray-500 text-xs">→ Consider:</span>
                   {fit.models.map((m, j) => (
-                    <span 
+                    <span
                       key={j}
                       className={`${businessModels[m]?.color || 'bg-gray-100'} px-2 py-0.5 rounded text-xs cursor-pointer hover:opacity-80 border`}
                       onClick={() => setSelectedModel(m)}
@@ -5356,7 +5371,7 @@ const PhysicalAIFramework = () => {
 
   const KeyPlayersTab = () => {
     const player = keyPlayersData[selectedPlayer];
-    
+
     // Group players by category for the dropdown
     const playerCategories = {
       'Industrial AI Platforms': ['palantir', 'cognite'],
@@ -5406,12 +5421,12 @@ const PhysicalAIFramework = () => {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          
+
           {/* Column 1: Heatmap */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg border p-4 h-full">
               <h3 className="font-bold mb-3 text-center">Coverage Heatmap</h3>
-              
+
               {/* Legend */}
               <div className="flex justify-center gap-4 mb-3 text-xs">
                 <div className="flex items-center gap-1">
@@ -5423,14 +5438,14 @@ const PhysicalAIFramework = () => {
                   <span>Incumbent</span>
                 </div>
               </div>
-              
+
               <div className="overflow-x-auto">
                 <table className="w-full text-xs border-collapse">
                   <thead>
                     <tr>
                       <th className="border p-1 bg-gray-100">Layer</th>
                       {verticals.map(v => (
-                        <th key={v.id} className="border p-1 bg-gray-100" style={{writingMode: 'vertical-rl', height: '80px'}}>
+                        <th key={v.id} className="border p-1 bg-gray-100" style={{ writingMode: 'vertical-rl', height: '80px' }}>
                           {v.name.substring(0, 8)}
                         </th>
                       ))}
@@ -5442,8 +5457,8 @@ const PhysicalAIFramework = () => {
                         <td className={`border p-1 font-medium text-xs ${layerColors[l.id]}`}>{l.id}</td>
                         {verticals.map(v => {
                           const status = player.presence[`${l.id}-${v.id}`];
-                          const cellColor = status === 'incumbent' ? 'bg-blue-600 text-white' : 
-                                           status === 'challenger' ? 'bg-orange-500 text-white' : 'bg-gray-50';
+                          const cellColor = status === 'incumbent' ? 'bg-blue-600 text-white' :
+                            status === 'challenger' ? 'bg-orange-500 text-white' : 'bg-gray-50';
                           return (
                             <td key={v.id} className={`border p-1 text-center ${cellColor}`}>
                               {status ? '◆' : ''}
@@ -5464,7 +5479,7 @@ const PhysicalAIFramework = () => {
             <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-4">
               <h3 className="font-bold text-gray-800 mb-3">Strategic Thesis</h3>
               <p className="text-sm text-gray-700 mb-4">{player.strategy.thesis}</p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="bg-white rounded p-3">
                   <div className="font-semibold text-sm mb-1">The Play</div>
@@ -5561,7 +5576,7 @@ const PhysicalAIFramework = () => {
         {/* Sales & Engagement Flow */}
         <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-4">
           <h3 className="font-bold text-gray-800 mb-4">Sales, Deploy & Expand Flow</h3>
-          
+
           {/* Phase Timeline */}
           <div className="flex flex-wrap gap-2 mb-4">
             {player.salesFlow.phases.map((phase, i) => (
@@ -5621,11 +5636,10 @@ const PhysicalAIFramework = () => {
             <button
               key={r.id}
               onClick={() => setSelectedResource(r.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedResource === r.id
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedResource === r.id
                   ? 'bg-gray-800 text-white'
                   : 'bg-white border-2 border-gray-300 hover:bg-gray-100'
-              }`}
+                }`}
             >
               {r.icon} {r.name}
             </button>
@@ -5686,7 +5700,7 @@ const PhysicalAIFramework = () => {
             <thead>
               <tr>
                 <th className="border p-2 bg-gray-100">FM Type</th>
-                {verticals.map(v => <th key={v.id} className="border p-1 bg-gray-100 writing-mode-vertical" style={{writingMode: 'vertical-rl'}}>{v.name}</th>)}
+                {verticals.map(v => <th key={v.id} className="border p-1 bg-gray-100 writing-mode-vertical" style={{ writingMode: 'vertical-rl' }}>{v.name}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -6762,7 +6776,7 @@ const PhysicalAIFramework = () => {
         <p className="text-sm text-gray-600 mb-4">
           The protocols that move data from sensors to cloud. Understanding these is essential for any Physical AI startup.
         </p>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {industrialProtocols.map((protocol) => (
             <div key={protocol.id} className={`${protocol.color} border-2 rounded-lg p-4`}>
@@ -6776,9 +6790,9 @@ const PhysicalAIFramework = () => {
                   {protocol.category}
                 </span>
               </div>
-              
+
               <p className="text-sm text-gray-700 mb-3">{protocol.overview}</p>
-              
+
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="bg-white rounded p-2">
                   <div className="font-semibold text-xs text-green-700 mb-1">Strengths</div>
@@ -6793,14 +6807,14 @@ const PhysicalAIFramework = () => {
                   </ul>
                 </div>
               </div>
-              
+
               <div className="flex flex-wrap gap-1 mb-2">
                 <span className="text-xs font-semibold">Layer Fit:</span>
                 {protocol.layerFit.map((l, i) => (
                   <span key={i} className={`${layerColors[l] || 'bg-gray-200'} text-xs px-1.5 py-0.5 rounded`}>{l}</span>
                 ))}
               </div>
-              
+
               <div className="text-xs text-gray-500">
                 <span className="font-semibold">Adoption:</span> {protocol.adoption}
               </div>
@@ -6902,7 +6916,7 @@ const PhysicalAIFramework = () => {
         <p className="text-sm text-gray-600 mb-4">
           The organizations shaping industrial standards. Understanding who drives standards helps navigate the landscape.
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {industryConsortia.map((org) => (
             <div key={org.id} className={`${org.color} border-2 rounded-lg p-4`}>
@@ -6913,16 +6927,16 @@ const PhysicalAIFramework = () => {
                   <div className="text-xs text-gray-600">Est. {org.founded}</div>
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-700 mb-3">{org.focus}</p>
-              
+
               <div className="bg-white rounded p-2 mb-2">
                 <div className="font-semibold text-xs mb-1">Key Initiatives</div>
                 <ul className="text-xs text-gray-600">
                   {org.keyInitiatives.slice(0, 3).map((init, i) => <li key={i}>• {init}</li>)}
                 </ul>
               </div>
-              
+
               <div className="text-xs text-gray-500">
                 <span className="font-semibold">Status:</span> {org.status}
               </div>
@@ -6939,7 +6953,7 @@ const PhysicalAIFramework = () => {
         <p className="text-sm text-gray-600 mb-4">
           The semantic frameworks that define how industrial data is structured. These standards ensure that "production order" means the same thing in SAP and on the shop floor.
         </p>
-        
+
         <div className="space-y-4">
           {dataModelStandards.map((standard) => (
             <div key={standard.id} className={`${standard.color} border-2 rounded-lg p-4`}>
@@ -6953,9 +6967,9 @@ const PhysicalAIFramework = () => {
                   )}
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-700 mb-3">{standard.overview}</p>
-              
+
               <div className="bg-white rounded p-3 mb-3">
                 <div className="font-semibold text-sm mb-2">Key Components</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -6967,7 +6981,7 @@ const PhysicalAIFramework = () => {
                   ))}
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <div className="font-semibold text-sm text-green-700 mb-1">Strategic Importance</div>
@@ -6980,7 +6994,7 @@ const PhysicalAIFramework = () => {
                   </ul>
                 </div>
               </div>
-              
+
               <div className="mt-3 pt-3 border-t flex flex-wrap gap-2 items-center">
                 <span className="text-xs font-semibold">Governance:</span>
                 <span className="bg-gray-200 text-xs px-2 py-0.5 rounded">{standard.governance}</span>
@@ -7002,7 +7016,7 @@ const PhysicalAIFramework = () => {
         <p className="text-sm text-gray-600 mb-4">
           The foundational model for understanding where systems and data live in manufacturing enterprises.
         </p>
-        
+
         <div className="space-y-2">
           <div className="bg-indigo-100 border-2 border-indigo-400 rounded-lg p-3">
             <div className="flex items-center justify-between">
@@ -7014,13 +7028,13 @@ const PhysicalAIFramework = () => {
             </div>
             <div className="text-xs text-gray-600 mt-1">SAP, Oracle, Microsoft Dynamics • Days-Weeks planning horizon</div>
           </div>
-          
+
           <div className="flex justify-center">
             <div className="bg-yellow-200 border border-yellow-500 rounded px-3 py-1 text-xs font-bold">
               ← B2MML / ISA-95 Interface →
             </div>
           </div>
-          
+
           <div className="bg-blue-100 border-2 border-blue-400 rounded-lg p-3">
             <div className="flex items-center justify-between">
               <div>
@@ -7031,7 +7045,7 @@ const PhysicalAIFramework = () => {
             </div>
             <div className="text-xs text-gray-600 mt-1">Siemens Opcenter, Rockwell Plex, AVEVA • Shifts-Days horizon</div>
           </div>
-          
+
           <div className="bg-cyan-100 border-2 border-cyan-400 rounded-lg p-3">
             <div className="flex items-center justify-between">
               <div>
@@ -7042,7 +7056,7 @@ const PhysicalAIFramework = () => {
             </div>
             <div className="text-xs text-gray-600 mt-1">Honeywell Experion, Emerson DeltaV, Ignition • Minutes-Hours horizon</div>
           </div>
-          
+
           <div className="bg-teal-100 border-2 border-teal-400 rounded-lg p-3">
             <div className="flex items-center justify-between">
               <div>
@@ -7053,7 +7067,7 @@ const PhysicalAIFramework = () => {
             </div>
             <div className="text-xs text-gray-600 mt-1">Siemens S7, Rockwell ControlLogix, ABB AC500 • Seconds-Minutes horizon</div>
           </div>
-          
+
           <div className="bg-green-100 border-2 border-green-400 rounded-lg p-3">
             <div className="flex items-center justify-between">
               <div>
@@ -7075,25 +7089,24 @@ const PhysicalAIFramework = () => {
         <p className="text-sm text-gray-600 mb-4">
           Understanding the ongoing debates and tensions in industrial standards helps navigate vendor conversations and architecture decisions.
         </p>
-        
+
         <div className="space-y-4">
           {protocolBattles.map((battle) => (
             <div key={battle.id} className={`${battle.color} border-2 rounded-lg p-4`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="font-bold text-lg">{battle.title}</div>
-                <span className={`text-xs px-2 py-1 rounded ${
-                  battle.status === 'Converging' ? 'bg-green-200 text-green-800' :
-                  battle.status === 'Regional Stalemate' ? 'bg-yellow-200 text-yellow-800' :
-                  battle.status === 'Ongoing Tension' ? 'bg-orange-200 text-orange-800' :
-                  battle.status === 'Architecture War' ? 'bg-red-200 text-red-800' :
-                  'bg-blue-200 text-blue-800'
-                }`}>
+                <span className={`text-xs px-2 py-1 rounded ${battle.status === 'Converging' ? 'bg-green-200 text-green-800' :
+                    battle.status === 'Regional Stalemate' ? 'bg-yellow-200 text-yellow-800' :
+                      battle.status === 'Ongoing Tension' ? 'bg-orange-200 text-orange-800' :
+                        battle.status === 'Architecture War' ? 'bg-red-200 text-red-800' :
+                          'bg-blue-200 text-blue-800'
+                  }`}>
                   {battle.status}
                 </span>
               </div>
-              
+
               <p className="text-sm text-gray-700 mb-3">{battle.context}</p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                 {battle.positions.map((pos, i) => (
                   <div key={i} className="bg-white rounded p-3">
@@ -7102,12 +7115,12 @@ const PhysicalAIFramework = () => {
                   </div>
                 ))}
               </div>
-              
+
               <div className="bg-white rounded p-3 mb-2">
                 <div className="font-semibold text-sm text-purple-700 mb-1">Resolution / Current State</div>
                 <p className="text-xs text-gray-700">{battle.resolution}</p>
               </div>
-              
+
               <div className="bg-gray-800 text-white rounded p-3">
                 <div className="font-semibold text-sm mb-1">💡 Implication for Startups</div>
                 <p className="text-xs">{battle.implication}</p>
@@ -7122,7 +7135,7 @@ const PhysicalAIFramework = () => {
         <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
           <span>🚀</span> Startup Standards Playbook
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white rounded-lg p-4">
             <div className="font-bold text-green-700 mb-2">✅ Do</div>
@@ -7135,7 +7148,7 @@ const PhysicalAIFramework = () => {
               <li>• <strong>Consider Sparkplug B</strong> – Growing fast, especially in North America.</li>
             </ul>
           </div>
-          
+
           <div className="bg-white rounded-lg p-4">
             <div className="font-bold text-red-700 mb-2">❌ Don't</div>
             <ul className="text-sm space-y-2">
@@ -7148,7 +7161,7 @@ const PhysicalAIFramework = () => {
             </ul>
           </div>
         </div>
-        
+
         <div className="mt-4 bg-white rounded-lg p-4">
           <div className="font-bold text-blue-700 mb-2">🎯 Quick Reference: Which Protocol When?</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
@@ -7722,7 +7735,7 @@ const PhysicalAIFramework = () => {
         <p className="text-sm text-gray-600 mb-4">
           Choose the right pilot structure based on your use case, customer readiness, and risk tolerance.
         </p>
-        
+
         {/* Pilot Pattern Comparison */}
         <div className="overflow-x-auto mb-6">
           <table className="w-full text-xs border-collapse">
@@ -7748,7 +7761,7 @@ const PhysicalAIFramework = () => {
             </tbody>
           </table>
         </div>
-        
+
         <div className="space-y-4">
           {pilotDesignPatterns.map((pattern) => (
             <div key={pattern.id} className={`${pattern.color} border-2 rounded-lg p-4`}>
@@ -7761,9 +7774,9 @@ const PhysicalAIFramework = () => {
                   </div>
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-700 mb-3">{pattern.overview}</p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                 <div className="bg-white rounded p-3">
                   <div className="font-semibold text-sm mb-2 text-green-700">When to Use</div>
@@ -7778,7 +7791,7 @@ const PhysicalAIFramework = () => {
                   </ul>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded p-3 mb-3">
                 <div className="font-semibold text-sm mb-2">Typical Timeline</div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -7790,7 +7803,7 @@ const PhysicalAIFramework = () => {
                   ))}
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <span className="font-semibold text-xs">Success Criteria: </span>
@@ -7813,7 +7826,7 @@ const PhysicalAIFramework = () => {
         <p className="text-sm text-gray-600 mb-4">
           Proven approaches for expanding from successful pilot to enterprise-wide deployment.
         </p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {scaleUpMethodologies.map((method) => (
             <div key={method.id} className={`${method.color} border-2 rounded-lg p-4`}>
@@ -7821,9 +7834,9 @@ const PhysicalAIFramework = () => {
                 <span className="text-2xl">{method.icon}</span>
                 <div className="font-bold text-lg">{method.name}</div>
               </div>
-              
+
               <p className="text-sm text-gray-700 mb-3">{method.overview}</p>
-              
+
               <div className="bg-white rounded p-3 mb-3">
                 <div className="font-semibold text-sm mb-2">Phases</div>
                 <div className="space-y-2">
@@ -7839,7 +7852,7 @@ const PhysicalAIFramework = () => {
                   ))}
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-white rounded p-2">
                   <div className="font-semibold text-xs text-green-700 mb-1">Success Factors</div>
@@ -7867,7 +7880,7 @@ const PhysicalAIFramework = () => {
         <p className="text-sm text-gray-600 mb-4">
           Driving adoption is often harder than the technology. These frameworks address the human side of AI transformation.
         </p>
-        
+
         <div className="space-y-4">
           {changeManagementFrameworks.map((framework) => (
             <div key={framework.id} className={`${framework.color} border-2 rounded-lg p-4`}>
@@ -7880,9 +7893,9 @@ const PhysicalAIFramework = () => {
                   </div>
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-700 mb-3">{framework.overview}</p>
-              
+
               <div className="bg-white rounded p-3 mb-3">
                 <div className="font-semibold text-sm mb-2">Stages</div>
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2">
@@ -7894,7 +7907,7 @@ const PhysicalAIFramework = () => {
                   ))}
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="bg-white rounded p-3">
                   <div className="font-semibold text-sm text-purple-700 mb-1">Industrial Application</div>
@@ -7918,7 +7931,7 @@ const PhysicalAIFramework = () => {
         <p className="text-sm text-gray-600 mb-4">
           Quantify the business case for industrial AI investments. Use these templates to structure your ROI analysis.
         </p>
-        
+
         <div className="space-y-6">
           {roiTemplates.map((template) => (
             <div key={template.id} className={`${template.color} border-2 rounded-lg p-4`}>
@@ -7929,7 +7942,7 @@ const PhysicalAIFramework = () => {
                   <div className="text-sm text-gray-600">{template.description}</div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                 {/* Value Drivers */}
                 <div className="bg-white rounded p-3">
@@ -7939,11 +7952,10 @@ const PhysicalAIFramework = () => {
                       <div key={i} className="bg-green-50 rounded p-2">
                         <div className="flex items-center justify-between">
                           <span className="font-semibold text-xs">{driver.driver}</span>
-                          <span className={`text-xs px-1.5 py-0.5 rounded ${
-                            driver.confidence === 'High' ? 'bg-green-200 text-green-800' :
-                            driver.confidence === 'Medium' ? 'bg-yellow-200 text-yellow-800' :
-                            'bg-red-200 text-red-800'
-                          }`}>{driver.confidence}</span>
+                          <span className={`text-xs px-1.5 py-0.5 rounded ${driver.confidence === 'High' ? 'bg-green-200 text-green-800' :
+                              driver.confidence === 'Medium' ? 'bg-yellow-200 text-yellow-800' :
+                                'bg-red-200 text-red-800'
+                            }`}>{driver.confidence}</span>
                         </div>
                         <div className="text-xs text-gray-600">{driver.calculation}</div>
                         <div className="text-xs text-green-700 font-medium">Typical: {driver.typical}</div>
@@ -7951,7 +7963,7 @@ const PhysicalAIFramework = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 {/* Cost Factors */}
                 <div className="bg-white rounded p-3">
                   <div className="font-semibold text-sm text-red-700 mb-2">Cost Factors</div>
@@ -7968,7 +7980,7 @@ const PhysicalAIFramework = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Sample Calculation */}
               <div className="bg-gray-50 rounded p-4">
                 <div className="font-semibold text-sm mb-3">📊 Sample Calculation: {template.sampleCalculation.scenario}</div>
@@ -8009,7 +8021,7 @@ const PhysicalAIFramework = () => {
         <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
           <span>🚀</span> Quick Reference: Pilot to Scale Checklist
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white rounded-lg p-4">
             <div className="font-bold text-blue-700 mb-2">1. Pre-Pilot</div>
@@ -8022,7 +8034,7 @@ const PhysicalAIFramework = () => {
               <li>☐ Expansion path discussed</li>
             </ul>
           </div>
-          
+
           <div className="bg-white rounded-lg p-4">
             <div className="font-bold text-green-700 mb-2">2. During Pilot</div>
             <ul className="text-xs space-y-1">
@@ -8034,7 +8046,7 @@ const PhysicalAIFramework = () => {
               <li>☐ Champions cultivated</li>
             </ul>
           </div>
-          
+
           <div className="bg-white rounded-lg p-4">
             <div className="font-bold text-purple-700 mb-2">3. Pilot Close</div>
             <ul className="text-xs space-y-1">
@@ -8046,7 +8058,7 @@ const PhysicalAIFramework = () => {
               <li>☐ Budget request prepared</li>
             </ul>
           </div>
-          
+
           <div className="bg-white rounded-lg p-4">
             <div className="font-bold text-orange-700 mb-2">4. Scale-Up</div>
             <ul className="text-xs space-y-1">
@@ -8059,7 +8071,7 @@ const PhysicalAIFramework = () => {
             </ul>
           </div>
         </div>
-        
+
         <div className="mt-4 bg-white rounded-lg p-4">
           <div className="font-bold text-gray-700 mb-2">💡 Golden Rules for Industrial AI Deployment</div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -8076,6 +8088,113 @@ const PhysicalAIFramework = () => {
   );
 
   // ============================================
+  // CHAT PANEL COMPONENT
+  // ============================================
+
+  const ChatPanel = () => {
+    const sendMessage = async () => {
+      if (!chatInput.trim() || chatLoading) return;
+
+      const userMessage = chatInput.trim();
+      setChatInput('');
+      setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+      setChatLoading(true);
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userMessage,
+            context: {
+              activeTab,
+              selectedVertical,
+              selectedLayer,
+              selectedPlayer
+            }
+          })
+        });
+
+        const data = await response.json();
+        if (data.error) {
+          setChatMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error}` }]);
+        } else {
+          setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+        }
+      } catch (error) {
+        setChatMessages(prev => [...prev, { role: 'assistant', content: 'Failed to connect to AI. Please try again.' }]);
+      }
+      setChatLoading(false);
+    };
+
+    const suggestedQuestions = [
+      "What is the Squeeze?",
+      "Explain Palantir's strategy",
+      "What are the key bottlenecks?",
+      "Compare L6 across industries"
+    ];
+
+    return (
+      <div className="fixed bottom-20 right-4 w-96 h-[500px] bg-white rounded-xl shadow-2xl border flex flex-col z-50">
+        {/* Header */}
+        <div className="bg-gray-800 text-white p-3 rounded-t-xl flex justify-between items-center">
+          <span className="font-bold">🤖 AI Assistant</span>
+          <button onClick={() => setChatOpen(false)} className="text-white hover:text-gray-300">✕</button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-3">
+          {chatMessages.length === 0 && (
+            <div className="text-center text-gray-500 text-sm">
+              <p className="mb-4">Ask me anything about the Physical AI framework!</p>
+              <div className="space-y-2">
+                {suggestedQuestions.map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setChatInput(q); }}
+                    className="block w-full text-left px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-xs"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {chatMessages.map((msg, i) => (
+            <div key={i} className={`p-2 rounded-lg text-sm ${msg.role === 'user' ? 'bg-blue-100 ml-8' : 'bg-gray-100 mr-8'}`}>
+              <div className="whitespace-pre-wrap">{msg.content}</div>
+            </div>
+          ))}
+          {chatLoading && (
+            <div className="bg-gray-100 mr-8 p-2 rounded-lg text-sm text-gray-500">Thinking...</div>
+          )}
+        </div>
+
+        {/* Input */}
+        <div className="p-3 border-t">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              placeholder="Ask a question..."
+              className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={sendMessage}
+              disabled={chatLoading}
+              className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ============================================
   // MAIN RENDER
   // ============================================
 
@@ -8090,11 +8209,10 @@ const PhysicalAIFramework = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === tab.id 
-                ? 'bg-gray-800 text-white' 
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === tab.id
+                ? 'bg-gray-800 text-white'
                 : 'bg-white border hover:bg-gray-50'
-            }`}
+              }`}
           >
             {tab.icon} {tab.name}
           </button>
@@ -8118,6 +8236,17 @@ const PhysicalAIFramework = () => {
       <div className="mt-4 text-center text-xs text-gray-500">
         Physical & Industrial AI Reference Guide v4.0
       </div>
+
+      {/* Chat Button */}
+      <button
+        onClick={() => setChatOpen(!chatOpen)}
+        className="fixed bottom-4 right-4 w-14 h-14 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 flex items-center justify-center text-2xl z-50"
+      >
+        {chatOpen ? '✕' : '💬'}
+      </button>
+
+      {/* Chat Panel */}
+      {chatOpen && <ChatPanel />}
     </div>
   );
 };
