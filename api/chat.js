@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
     try {
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -51,9 +51,16 @@ export default async function handler(req, res) {
         );
 
         if (!response.ok) {
-            const error = await response.text();
-            console.error('Gemini API error:', error);
-            return res.status(500).json({ error: 'Failed to get AI response' });
+            const errorText = await response.text();
+            console.error('Gemini API error:', errorText);
+            let errorMessage = 'Failed to get AI response';
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.error?.message || errorMessage;
+            } catch (e) {
+                // ignore parse error
+            }
+            return res.status(500).json({ error: errorMessage });
         }
 
         const data = await response.json();
