@@ -110,7 +110,7 @@ const ChatPanel = ({
         )}
         {chatMessages.map((msg, i) => (
           <div key={i} className={`p-2 rounded-lg text-sm ${msg.role === 'user' ? 'bg-blue-100 ml-8' : 'bg-gray-100 mr-8'}`}>
-            <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-headings:my-2 prose-a:text-blue-600 prose-a:underline hover:prose-a:text-blue-800" dangerouslySetInnerHTML={{ __html: msg.role === 'assistant' ? marked.parse(msg.content) : msg.content.replace(/\n/g, '<br/>') }} />
+            <div className="prose prose-sm max-w-none [&_p]:my-1 [&_ul]:my-1 [&_li]:my-0 [&_li_p]:my-0 [&_h1]:text-lg [&_h1]:my-2 [&_h2]:text-base [&_h2]:my-2 [&_h3]:text-sm [&_h3]:my-1 [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-800" dangerouslySetInnerHTML={{ __html: msg.role === 'assistant' ? marked.parse(msg.content) : msg.content.replace(/\n/g, '<br/>') }} />
           </div>
         ))}
         {chatLoading && <div className="bg-gray-100 mr-8 p-2 rounded-lg text-sm text-gray-500">Thinking...</div>}
