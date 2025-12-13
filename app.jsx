@@ -4262,8 +4262,8 @@ const PhysicalAIFramework = () => {
               key={l.id}
               onClick={() => setSelectedLayer(l.id)}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedLayer === l.id
-                  ? `${layerColorsDark[l.id]} text-white`
-                  : `${layerColors[l.id]} border-2 hover:opacity-80`
+                ? `${layerColorsDark[l.id]} text-white`
+                : `${layerColors[l.id]} border-2 hover:opacity-80`
                 }`}
             >
               {l.id}: {l.name}
@@ -4396,8 +4396,8 @@ const PhysicalAIFramework = () => {
               key={v.id}
               onClick={() => setSelectedVertical(v.id)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${selectedVertical === v.id
-                  ? 'bg-gray-800 text-white'
-                  : 'bg-white border hover:bg-gray-50'
+                ? 'bg-gray-800 text-white'
+                : 'bg-white border hover:bg-gray-50'
                 }`}
             >
               {v.name}
@@ -4586,8 +4586,8 @@ const PhysicalAIFramework = () => {
         <div className="flex items-start justify-between mb-2">
           <h4 className="font-bold text-sm text-gray-800">{useCase.title}</h4>
           <span className={`text-xs px-2 py-1 rounded-full font-medium ${useCase.impact === 'Transformational' ? 'bg-red-100 text-red-700' :
-              useCase.impact === 'High' ? 'bg-orange-100 text-orange-700' :
-                'bg-yellow-100 text-yellow-700'
+            useCase.impact === 'High' ? 'bg-orange-100 text-orange-700' :
+              'bg-yellow-100 text-yellow-700'
             }`}>
             {useCase.impact}
           </span>
@@ -4833,7 +4833,7 @@ const PhysicalAIFramework = () => {
                                       <span
                                         key={i}
                                         className={`w-2 h-2 rounded-full ${uc.impact === 'Transformational' ? 'bg-red-500' :
-                                            uc.impact === 'High' ? 'bg-orange-500' : 'bg-yellow-500'
+                                          uc.impact === 'High' ? 'bg-orange-500' : 'bg-yellow-500'
                                           }`}
                                       />
                                     ))}
@@ -4972,8 +4972,8 @@ const PhysicalAIFramework = () => {
                 key={m.id}
                 onClick={() => setSelectedModel(m.id)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedModel === m.id
-                    ? `${m.colorDark} text-white`
-                    : `${m.color} border-2 hover:opacity-80`
+                  ? `${m.colorDark} text-white`
+                  : `${m.color} border-2 hover:opacity-80`
                   }`}
               >
                 {m.icon} {m.name}
@@ -5143,8 +5143,8 @@ const PhysicalAIFramework = () => {
                       key={opt.id}
                       onClick={() => setActiveModifiers({ ...activeModifiers, [modifier.id]: opt.id })}
                       className={`w-full text-left p-2 rounded text-xs transition-colors ${activeModifiers[modifier.id] === opt.id
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-100 hover:bg-gray-200'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-100 hover:bg-gray-200'
                         }`}
                     >
                       <div className="font-semibold">{opt.name}</div>
@@ -5637,8 +5637,8 @@ const PhysicalAIFramework = () => {
               key={r.id}
               onClick={() => setSelectedResource(r.id)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedResource === r.id
-                  ? 'bg-gray-800 text-white'
-                  : 'bg-white border-2 border-gray-300 hover:bg-gray-100'
+                ? 'bg-gray-800 text-white'
+                : 'bg-white border-2 border-gray-300 hover:bg-gray-100'
                 }`}
             >
               {r.icon} {r.name}
@@ -7096,10 +7096,10 @@ const PhysicalAIFramework = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="font-bold text-lg">{battle.title}</div>
                 <span className={`text-xs px-2 py-1 rounded ${battle.status === 'Converging' ? 'bg-green-200 text-green-800' :
-                    battle.status === 'Regional Stalemate' ? 'bg-yellow-200 text-yellow-800' :
-                      battle.status === 'Ongoing Tension' ? 'bg-orange-200 text-orange-800' :
-                        battle.status === 'Architecture War' ? 'bg-red-200 text-red-800' :
-                          'bg-blue-200 text-blue-800'
+                  battle.status === 'Regional Stalemate' ? 'bg-yellow-200 text-yellow-800' :
+                    battle.status === 'Ongoing Tension' ? 'bg-orange-200 text-orange-800' :
+                      battle.status === 'Architecture War' ? 'bg-red-200 text-red-800' :
+                        'bg-blue-200 text-blue-800'
                   }`}>
                   {battle.status}
                 </span>
@@ -7953,8 +7953,8 @@ const PhysicalAIFramework = () => {
                         <div className="flex items-center justify-between">
                           <span className="font-semibold text-xs">{driver.driver}</span>
                           <span className={`text-xs px-1.5 py-0.5 rounded ${driver.confidence === 'High' ? 'bg-green-200 text-green-800' :
-                              driver.confidence === 'Medium' ? 'bg-yellow-200 text-yellow-800' :
-                                'bg-red-200 text-red-800'
+                            driver.confidence === 'Medium' ? 'bg-yellow-200 text-yellow-800' :
+                              'bg-red-200 text-red-800'
                             }`}>{driver.confidence}</span>
                         </div>
                         <div className="text-xs text-gray-600">{driver.calculation}</div>
@@ -8092,6 +8092,8 @@ const PhysicalAIFramework = () => {
   // ============================================
 
   const ChatPanel = () => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
     const sendMessage = async () => {
       if (!chatInput.trim() || chatLoading) return;
 
@@ -8135,11 +8137,28 @@ const PhysicalAIFramework = () => {
     ];
 
     return (
-      <div className="fixed bottom-20 right-4 w-96 h-[500px] bg-white rounded-xl shadow-2xl border flex flex-col z-50">
+      <div className={`fixed bottom-20 right-4 bg-white rounded-xl shadow-2xl border flex flex-col z-50 transition-all duration-300 ${isExpanded ? 'w-[50vw] h-[80vh]' : 'w-96 h-[500px]'}`}>
         {/* Header */}
-        <div className="bg-gray-800 text-white p-3 rounded-t-xl flex justify-between items-center">
-          <span className="font-bold">🤖 AI Assistant</span>
-          <button onClick={() => setChatOpen(false)} className="text-white hover:text-gray-300">✕</button>
+        <div className="bg-gray-800 text-white p-3 rounded-t-xl flex justify-between items-center cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+          <div className="flex items-center gap-2">
+            <span className="font-bold">🤖 AI Assistant</span>
+            <span className="text-xs bg-blue-500 px-2 py-0.5 rounded text-white hidden md:inline-block">Gemini 2.0 Flash</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+              className="text-white hover:text-gray-300 text-sm"
+              title={isExpanded ? "Collapse" : "Expand"}
+            >
+              {isExpanded ? '↙️' : '↗️'}
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setChatOpen(false); }}
+              className="text-white hover:text-gray-300 text-lg leading-none"
+            >
+              &times;
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -8210,8 +8229,8 @@ const PhysicalAIFramework = () => {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === tab.id
-                ? 'bg-gray-800 text-white'
-                : 'bg-white border hover:bg-gray-50'
+              ? 'bg-gray-800 text-white'
+              : 'bg-white border hover:bg-gray-50'
               }`}
           >
             {tab.icon} {tab.name}
