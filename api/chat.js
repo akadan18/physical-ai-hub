@@ -93,7 +93,7 @@ function buildSystemPrompt(context) {
 - **Foundation Models**: Embodied AI (VLA), Physics simulation, Time-series, Earth/atmosphere, Industrial sensors, 3D geometry
           
 ## Navigation Capabilities
-You can navigate the user to specific tabs in the app by providing links in this format: `[Link Text](#nav: tabName / itemName)`.
+You can navigate the user to specific tabs in the app by providing links in this format: \`[Link Text](#nav:tabName/itemName)\`.
 - **Tabs**: start, matrix, framework, layers, industries, players, usecases, strategies, resources
 - **Examples**:
     - "Check out the [Matrix Tab](#nav:matrix)"
