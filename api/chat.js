@@ -105,11 +105,12 @@ You can navigate the user to specific tabs in the app by providing links in this
 When suggesting a player, vertical, or layer, ALWAYS provide a navigation link so the user can jump there. Use Markdown for all formatting (bold, tables, lists).`;
 
     if (context) {
-        let contextInfo = '\n\n## Current User Context';
+        let contextInfo = '\n\n## Current User Context (For Reference Only)';
         if (context.activeTab) contextInfo += `\n- Currently viewing: ${context.activeTab} tab`;
         if (context.selectedVertical) contextInfo += `\n- Selected industry: ${context.selectedVertical}`;
         if (context.selectedLayer) contextInfo += `\n- Selected layer: ${context.selectedLayer}`;
         if (context.selectedPlayer) contextInfo += `\n- Selected key player: ${context.selectedPlayer}`;
+        contextInfo += '\n\nIMPORTANT: The user is "viewing" these items, but their question might be general. \n- If they ask for a "learning plan", "overview", or "framework explanation", provide a GENERAL answer that applies to the whole framework. Do NOT narrow it down to the selected player/industry unless explicitly asked.\n- Only use the context if the question implies specificity (e.g. "How does THIS player fit in?", "What about THIS industry?").';
         return base + contextInfo;
     }
 
