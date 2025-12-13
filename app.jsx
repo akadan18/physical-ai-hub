@@ -8129,6 +8129,26 @@ const PhysicalAIFramework = () => {
       setChatLoading(false);
     };
 
+    const handleChatClick = (e) => {
+      // Intercept navigation links
+      if (e.target.tagName === 'A') {
+        const href = e.target.getAttribute('href');
+        if (href && href.startsWith('nav:')) {
+          e.preventDefault();
+          const [scheme, path] = href.split(':');
+          if (path) {
+            const [tab, item] = path.split('/');
+            if (tab) setActiveTab(tab);
+            if (item) {
+              if (tab === 'players') setSelectedPlayer(item);
+              if (tab === 'industries') setSelectedVertical(item);
+              if (tab === 'layers') setSelectedLayer(item);
+            }
+          }
+        }
+      }
+    };
+
     const suggestedQuestions = [
       "What is the Squeeze?",
       "Explain Palantir's strategy",
@@ -8162,7 +8182,7 @@ const PhysicalAIFramework = () => {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-3">
+        <div className="flex-1 overflow-y-auto p-3 space-y-3" onClick={handleChatClick}>
           {chatMessages.length === 0 && (
             <div className="text-center text-gray-500 text-sm">
               <p className="mb-4">Ask me anything about the Physical AI framework!</p>
@@ -8181,7 +8201,10 @@ const PhysicalAIFramework = () => {
           )}
           {chatMessages.map((msg, i) => (
             <div key={i} className={`p-2 rounded-lg text-sm ${msg.role === 'user' ? 'bg-blue-100 ml-8' : 'bg-gray-100 mr-8'}`}>
-              <div className="whitespace-pre-wrap">{msg.content}</div>
+              <div
+                className="whitespace-pre-wrap prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: msg.role === 'assistant' ? marked.parse(msg.content) : msg.content }}
+              />
             </div>
           ))}
           {chatLoading && (

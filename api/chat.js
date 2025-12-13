@@ -90,7 +90,19 @@ function buildSystemPrompt(context) {
 ## Key Concepts
 - **The Squeeze**: AI is collapsing down (L6→L3), Autonomy is collapsing up (L-1→L2), creating pressure at L2-L3
 - **Bottlenecks**: Legacy assets, IT/OT divide, regulatory compliance, vendor lock-in, change management
-- **Foundation Models**: Embodied AI (VLA), Physics simulation, Time-series, Earth/atmosphere, Industrial sensors, 3D geometry`;
+- **Foundation Models**: Embodied AI (VLA), Physics simulation, Time-series, Earth/atmosphere, Industrial sensors, 3D geometry
+          
+## Navigation Capabilities
+You can navigate the user to specific tabs in the app by providing links in this format: \`[Link Text](nav:tabName/itemName)\`.
+- **Tabs**: start, matrix, framework, layers, industries, players, usecases, strategies, resources
+- **Examples**:
+    - "Check out the [Matrix Tab](nav:matrix)"
+    - "See details for [Palantir](nav:players/palantir)"
+    - "Review [Process Manufacturing](nav:industries/process)"
+    - "Detailed [Use Cases](nav:usecases)"
+    - "Look at [Layer 6](nav:layers/L6)"
+
+When suggesting a player, vertical, or layer, ALWAYS provide a navigation link so the user can jump there. Use Markdown for all formatting (bold, tables, lists).`;
 
     if (context) {
         let contextInfo = '\n\n## Current User Context';
