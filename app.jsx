@@ -1,5 +1,127 @@
 const { useState } = React;
 
+// ============================================
+// EXTRACTED CHAT PANEL COMPONENT
+// ============================================
+const ChatPanel = ({
+  setChatOpen,
+  chatMessages, setChatMessages,
+  chatInput, setChatInput,
+  chatLoading, setChatLoading,
+  activeTab, setActiveTab,
+  selectedVertical, setSelectedVertical,
+  selectedLayer, setSelectedLayer,
+  selectedPlayer, setSelectedPlayer
+}) => {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  const sendMessage = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setChatLoading(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage,
+          context: {
+            activeTab,
+            selectedVertical,
+            selectedLayer,
+            selectedPlayer
+          }
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) {
+        setChatMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error}` }]);
+      } else {
+        setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      }
+    } catch (error) {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: 'Failed to connect to AI. Please try again.' }]);
+    }
+    setChatLoading(false);
+  };
+
+  const handleChatClick = (e) => {
+    if (e.target.tagName === 'A') {
+      const href = e.target.getAttribute('href');
+      if (href && href.startsWith('nav:')) {
+        e.preventDefault();
+        const [scheme, path] = href.split(':');
+        if (path) {
+          const [tab, item] = path.split('/');
+          if (tab) setActiveTab(tab);
+          if (item) {
+            if (tab === 'players') setSelectedPlayer(item);
+            if (tab === 'industries') setSelectedVertical(item);
+            if (tab === 'layers') setSelectedLayer(item);
+          }
+        }
+      }
+    }
+  };
+
+  const suggestedQuestions = [
+    "What is the Squeeze?",
+    "Explain Palantir's strategy",
+    "What are the key bottlenecks?",
+    "Compare L6 across industries"
+  ];
+
+  return (
+    <div className={`fixed bottom-20 right-4 bg-white rounded-xl shadow-2xl border flex flex-col z-50 transition-all duration-300 ${isExpanded ? 'w-[50vw] h-[80vh]' : 'w-96 h-[500px]'}`}>
+      <div className="bg-gray-800 text-white p-3 rounded-t-xl flex justify-between items-center cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="flex items-center gap-2">
+          <span className="font-bold">🤖 AI Assistant</span>
+          <span className="text-xs bg-purple-600 px-2 py-0.5 rounded text-white hidden md:inline-block">Gemini 3.0 Pro</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+            className="text-white hover:text-gray-300 text-lg"
+            title={isExpanded ? "Collapse" : "Expand"}
+          >
+            {isExpanded ? '↙️' : '↗️'}
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); setChatOpen(false); }} className="text-white hover:text-gray-300 text-lg leading-none">&times;</button>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-3 space-y-3" onClick={handleChatClick}>
+        {chatMessages.length === 0 && (
+          <div className="text-center text-gray-500 text-sm">
+            <p className="mb-4">Ask me anything about the Physical AI framework!</p>
+            <div className="space-y-2">
+              {suggestedQuestions.map((q, i) => (
+                <button key={i} onClick={() => setChatInput(q)} className="block w-full text-left px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-xs">{q}</button>
+              ))}
+            </div>
+          </div>
+        )}
+        {chatMessages.map((msg, i) => (
+          <div key={i} className={`p-2 rounded-lg text-sm ${msg.role === 'user' ? 'bg-blue-100 ml-8' : 'bg-gray-100 mr-8'}`}>
+            <div className="whitespace-pre-wrap prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: msg.role === 'assistant' ? marked.parse(msg.content) : msg.content }} />
+          </div>
+        ))}
+        {chatLoading && <div className="bg-gray-100 mr-8 p-2 rounded-lg text-sm text-gray-500">Thinking...</div>}
+      </div>
+      <div className="p-3 border-t">
+        <div className="flex gap-2">
+          <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendMessage()} placeholder="Ask a question..." className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <button onClick={sendMessage} disabled={chatLoading} className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50">Send</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const PhysicalAIFramework = () => {
   const [activeTab, setActiveTab] = useState('start');
   const [selectedCell, setSelectedCell] = useState(null);
@@ -8087,154 +8209,7 @@ const PhysicalAIFramework = () => {
     </div>
   );
 
-  // ============================================
-  // CHAT PANEL COMPONENT
-  // ============================================
 
-  const ChatPanel = () => {
-    const [isExpanded, setIsExpanded] = useState(false);
-
-    const sendMessage = async () => {
-      if (!chatInput.trim() || chatLoading) return;
-
-      const userMessage = chatInput.trim();
-      setChatInput('');
-      setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-      setChatLoading(true);
-
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: userMessage,
-            context: {
-              activeTab,
-              selectedVertical,
-              selectedLayer,
-              selectedPlayer
-            }
-          })
-        });
-
-        const data = await response.json();
-        if (data.error) {
-          setChatMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error}` }]);
-        } else {
-          setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-        }
-      } catch (error) {
-        setChatMessages(prev => [...prev, { role: 'assistant', content: 'Failed to connect to AI. Please try again.' }]);
-      }
-      setChatLoading(false);
-    };
-
-    const handleChatClick = (e) => {
-      // Intercept navigation links
-      if (e.target.tagName === 'A') {
-        const href = e.target.getAttribute('href');
-        if (href && href.startsWith('nav:')) {
-          e.preventDefault();
-          const [scheme, path] = href.split(':');
-          if (path) {
-            const [tab, item] = path.split('/');
-            if (tab) setActiveTab(tab);
-            if (item) {
-              if (tab === 'players') setSelectedPlayer(item);
-              if (tab === 'industries') setSelectedVertical(item);
-              if (tab === 'layers') setSelectedLayer(item);
-            }
-          }
-        }
-      }
-    };
-
-    const suggestedQuestions = [
-      "What is the Squeeze?",
-      "Explain Palantir's strategy",
-      "What are the key bottlenecks?",
-      "Compare L6 across industries"
-    ];
-
-    return (
-      <div className={`fixed bottom-20 right-4 bg-white rounded-xl shadow-2xl border flex flex-col z-50 transition-all duration-300 ${isExpanded ? 'w-[50vw] h-[80vh]' : 'w-96 h-[500px]'}`}>
-        {/* Header */}
-        <div className="bg-gray-800 text-white p-3 rounded-t-xl flex justify-between items-center cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
-          <div className="flex items-center gap-2">
-            <span className="font-bold">🤖 AI Assistant</span>
-            <span className="text-xs bg-purple-600 px-2 py-0.5 rounded text-white hidden md:inline-block">Gemini 3.0 Pro</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-              className="text-white hover:text-gray-300 text-sm"
-              title={isExpanded ? "Collapse" : "Expand"}
-            >
-              {isExpanded ? '↙️' : '↗️'}
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); setChatOpen(false); }}
-              className="text-white hover:text-gray-300 text-lg leading-none"
-            >
-              &times;
-            </button>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-3" onClick={handleChatClick}>
-          {chatMessages.length === 0 && (
-            <div className="text-center text-gray-500 text-sm">
-              <p className="mb-4">Ask me anything about the Physical AI framework!</p>
-              <div className="space-y-2">
-                {suggestedQuestions.map((q, i) => (
-                  <button
-                    key={i}
-                    onClick={() => { setChatInput(q); }}
-                    className="block w-full text-left px-3 py-2 bg-gray-100 rounded hover:bg-gray-200 text-xs"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          {chatMessages.map((msg, i) => (
-            <div key={i} className={`p-2 rounded-lg text-sm ${msg.role === 'user' ? 'bg-blue-100 ml-8' : 'bg-gray-100 mr-8'}`}>
-              <div
-                className="whitespace-pre-wrap prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: msg.role === 'assistant' ? marked.parse(msg.content) : msg.content }}
-              />
-            </div>
-          ))}
-          {chatLoading && (
-            <div className="bg-gray-100 mr-8 p-2 rounded-lg text-sm text-gray-500">Thinking...</div>
-          )}
-        </div>
-
-        {/* Input */}
-        <div className="p-3 border-t">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="Ask a question..."
-              className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={sendMessage}
-              disabled={chatLoading}
-              className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50"
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // ============================================
   // MAIN RENDER
@@ -8288,7 +8263,16 @@ const PhysicalAIFramework = () => {
       </button>
 
       {/* Chat Panel */}
-      {chatOpen && <ChatPanel />}
+      {chatOpen && <ChatPanel
+        setChatOpen={setChatOpen}
+        chatMessages={chatMessages} setChatMessages={setChatMessages}
+        chatInput={chatInput} setChatInput={setChatInput}
+        chatLoading={chatLoading} setChatLoading={setChatLoading}
+        activeTab={activeTab} setActiveTab={setActiveTab}
+        selectedVertical={selectedVertical} setSelectedVertical={setSelectedVertical}
+        selectedLayer={selectedLayer} setSelectedLayer={setSelectedLayer}
+        selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer}
+      />}
     </div>
   );
 };
