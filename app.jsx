@@ -70,10 +70,9 @@ const ChatPanel = ({
   };
 
   const suggestedQuestions = [
-    "What is the Squeeze?",
-    "Explain Palantir's strategy",
-    "What are the key bottlenecks?",
-    "Compare L6 across industries"
+    "Explain the overall framework",
+    "Build me a 60-min learning plan",
+    "Structure a 2-hour founder session to identify opportunities"
   ];
 
   return (
@@ -8227,8 +8226,8 @@ const PhysicalAIFramework = () => {
             key={tab.id}
             onClick={() => { setActiveTab(tab.id); setSelectedCell(null); }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-100'
-                : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200 shadow-sm hover:shadow'
+              ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-100'
+              : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200 shadow-sm hover:shadow'
               }`}
           >
             {tab.icon} {tab.name}
