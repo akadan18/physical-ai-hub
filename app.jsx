@@ -77,8 +77,8 @@ const ChatPanel = ({
   ];
 
   return (
-    <div className={`fixed bottom-20 right-4 bg-white rounded-xl shadow-2xl border flex flex-col z-50 transition-all duration-300 ${isExpanded ? 'w-[50vw] h-[80vh]' : 'w-96 h-[500px]'}`}>
-      <div className="bg-gray-800 text-white p-3 rounded-t-xl flex justify-between items-center cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+    <div className={`fixed bottom-20 right-4 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-slate-200 flex flex-col z-50 transition-all duration-300 ${isExpanded ? 'w-[50vw] h-[80vh]' : 'w-96 h-[500px]'}`}>
+      <div className="bg-slate-800 text-white p-3 rounded-t-xl flex justify-between items-center cursor-pointer shadow-sm" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="flex items-center gap-2">
           <span className="font-bold">🤖 AI Assistant</span>
           <span className="text-xs bg-purple-600 px-2 py-0.5 rounded text-white hidden md:inline-block">Gemini 3.0 Pro</span>
@@ -112,10 +112,10 @@ const ChatPanel = ({
         ))}
         {chatLoading && <div className="bg-gray-100 mr-8 p-2 rounded-lg text-sm text-gray-500">Thinking...</div>}
       </div>
-      <div className="p-3 border-t">
+      <div className="p-3 border-t border-slate-100 bg-slate-50 rounded-b-xl">
         <div className="flex gap-2">
-          <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendMessage()} placeholder="Ask a question..." className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          <button onClick={sendMessage} disabled={chatLoading} className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50">Send</button>
+          <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendMessage()} placeholder="Ask a question..." className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+          <button onClick={sendMessage} disabled={chatLoading} className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 disabled:opacity-50 transition-colors shadow-sm">Send</button>
         </div>
       </div>
     </div>
@@ -8216,19 +8216,19 @@ const PhysicalAIFramework = () => {
   // ============================================
 
   return (
-    <div className="p-4 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold text-center mb-2">Physical & Industrial AI Reference Guide</h1>
-      <p className="text-center text-gray-600 mb-4 text-sm">Founder reference guide to Physical and Industrial AI, helping us get up to speed fast and have deeper strategic discussions.</p>
+    <div className="p-4 bg-slate-50 min-h-screen font-sans text-slate-800">
+      <h1 className="text-3xl font-extrabold text-center mb-2 tracking-tight text-slate-900">Physical & Industrial AI Reference Guide</h1>
+      <p className="text-center text-slate-500 mb-6 text-sm max-w-2xl mx-auto">Founder reference guide to Physical and Industrial AI, helping us get up to speed fast and have deeper strategic discussions.</p>
 
       {/* Tab Navigation */}
       <div className="flex flex-wrap gap-2 mb-4 justify-center">
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === tab.id
-              ? 'bg-gray-800 text-white'
-              : 'bg-white border hover:bg-gray-50'
+            onClick={() => { setActiveTab(tab.id); setSelectedCell(null); }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id
+                ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-100'
+                : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200 shadow-sm hover:shadow'
               }`}
           >
             {tab.icon} {tab.name}
@@ -8257,7 +8257,7 @@ const PhysicalAIFramework = () => {
       {/* Chat Button */}
       <button
         onClick={() => setChatOpen(!chatOpen)}
-        className="fixed bottom-4 right-4 w-14 h-14 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 flex items-center justify-center text-2xl z-50"
+        className="fixed bottom-4 right-4 w-14 h-14 bg-slate-800 text-white rounded-full shadow-lg hover:bg-slate-700 hover:shadow-xl transition-all duration-200 flex items-center justify-center text-2xl z-50 ring-2 ring-white"
       >
         {chatOpen ? '✕' : '💬'}
       </button>
