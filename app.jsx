@@ -778,6 +778,69 @@ const PhysicalAIFramework = () => {
     },
   };
 
+  const lifecycleData = {
+    process: {
+      design: { title: "Generative Formulations", text: "AI surrogates (e.g., ESM3) designing molecules/recipes in silico, reducing wet-lab iterations." },
+      build: { title: "Capital Project Intelligence", text: "AI-driven scheduling (e.g., ALICE) and supply chain planning for plant construction/retrofits." },
+      operate: { title: "Autonomous Control", text: "Real-time setpoint optimization (APC/RL) and 'self-driving' steady states." },
+      maintain: { title: "Predictive Asset Health", text: "Vibration/thermal monitoring for critical pumps/valves; AI-guided remote experts." }
+    },
+    discrete: {
+      design: { title: "Generative Product Design", text: "AI co-optimizing geometry, material, and manufacturability (e.g., Neural Concept)." },
+      build: { title: "Virtual Commissioning", text: "Simulating lines/cells in digital twins before physical deployment to catch errors early." },
+      operate: { title: "Adaptive Manufacturing", text: "Computer vision for inline QC; dynamic routing of work-in-progress based on bottlenecks." },
+      maintain: { title: "Condition-Based MRO", text: "Sensor fusion on spindles/motors predicting failure; AR work instructions for techs." }
+    },
+    energy: {
+      design: { title: "Subsurface Modeling", text: "AI-enhanced seismic interpretation and reservoir simulation for optimal well placement." },
+      build: { title: "Capital Efficiency", text: "Optimizing drilling campaigns and facilities construction logistics." },
+      operate: { title: "Production Optimization", text: "Real-time choke/lift adjustments to maximize flow while minimizing sand/water." },
+      maintain: { title: "Remote Asset Integrity", text: "Drone/robot inspections of pipelines/platforms; predictive corrosion modeling." }
+    },
+    utilities: {
+      design: { title: "Grid Planning", text: "Forecasting long-term load/DER growth to optimize T&D infrastructure investment." },
+      build: { title: "Interconnection Queues", text: "AI accelerating permitting and study reviews for new renewables/storage projects." },
+      operate: { title: "Grid Orchestration", text: "Real-time balancing of DERs (VPPs); ADMS optimization for stability." },
+      maintain: { title: "Vegetation Management", text: "Satellite/LiDAR analysis predicting encroachment; drone inspection of lines." }
+    },
+    mining: {
+      design: { title: "Orebody Modeling", text: "AI fusing drill/assay data to predict grade distribution and mine plan geometry." },
+      build: { title: "Mine Construction", text: "Logistics and scheduling for remote infrastructure and fleet mobilization." },
+      operate: { title: "Pit-to-Port Optimization", text: "Integrated scheduling of blast, haul, crush, and rail for max throughput." },
+      maintain: { title: "Mobile Fleet PMM", text: "Telemetry analyzing engine/tire data to prevent haul truck breakdowns." }
+    },
+    construction: {
+      design: { title: "Generative Building Design", text: "AI exploring thousands of layouts regarding code, cost, and energy constraints." },
+      build: { title: "Jobsite Orchestration", text: "Reality capture (360°/LiDAR) comparison vs. BIM; AI scheduling (CPM replacement)." },
+      operate: { title: "Smart Building Ops", text: "AI-driven HVAC/lighting control based on occupancy and weather." },
+      maintain: { title: "Digital Twin FM", text: "BIM-to-FM handover; predictive maintenance for elevators/MEP systems." }
+    },
+    aerospace: {
+      design: { title: "Neural Physics Surrogates", text: "Accelerating CFD/FEA 1000x for rapid airframe and propulsion iteration." },
+      build: { title: "Supply Chain Resilience", text: "Multi-tier visibility into part shortages; advanced quality inspection (VLA)." },
+      operate: { title: "Autonomy & Mission Planning", text: "AI pilots and swarm logic; strategic mission optimization." },
+      maintain: { title: "Fleet Readiness", text: "Predictive engine health; optimization of spares inventory and technician routing." }
+    },
+    land: {
+      design: { title: "Network Design", text: "Optimizing warehouse locations and fleet mix based on demand forecasts." },
+      build: { title: "Fleet Procurement", text: "Data-driven decisions on vehicle specs and EV infrastructure rollout." },
+      operate: { title: "Dynamic Routing", text: "Real-time dispatch and route optimization based on traffic, weather, patterns." },
+      maintain: { title: "Fleet Uptime", text: "Predictive maintenance for trucks/trailers; automated service scheduling." }
+    },
+    maritime: {
+      design: { title: "Vessel Optimization", text: "Hull form and propulsion design optimized for real-world operating profiles." },
+      build: { title: "Shipyard Digitalization", text: "Digital twins for ship construction; smarter supply chain for parts." },
+      operate: { title: "Voyage Optimization", text: "Weather routing; fuel consumption optimization; port call synchronization." },
+      maintain: { title: "Hull & Engine Health", text: "Monitoring hull fouling impact; predictive maintenance on main engines." }
+    },
+    datacenters: {
+      design: { title: "Capacity Planning", text: "AI forecasting compute demand; optimizing site selection and cooling design." },
+      build: { title: "Supply Chain Orchestration", text: "Managing lead times for chips/servers/power gear; construction tracking." },
+      operate: { title: "Workload Placement", text: "Real-time cooling/power optimization matching active compute loads." },
+      maintain: { title: "Robot-Augmented Ops", text: "Automated inspection rounds; predictive failure analysis for drives/fans." }
+    }
+  };
+
   // ============================================
   // SQUEEZE TAB DATA
   // ============================================
@@ -3544,9 +3607,10 @@ const PhysicalAIFramework = () => {
   // ============================================
 
   const tabs = [
-    { id: 'start', name: 'Start Here', icon: '🚀' },
-    { id: 'framework', name: 'Framework', icon: '🗝️' },
-    { id: 'matrix', name: 'Matrix', icon: '📊' },
+    { id: 'start', name: 'Start Here', icon: '🏁' },
+    { id: 'matrix', name: 'The Matrix', icon: '🏗️' },
+    { id: 'valuechain', name: 'Value Chain', icon: '🔗' },
+    { id: 'framework', name: 'Framework', icon: '🧩' },
     { id: 'layers', name: 'Layers', icon: '📚' },
     { id: 'industries', name: 'Industries', icon: '🏭' },
     { id: 'usecases', name: 'Use Cases', icon: '💡' },
@@ -8202,7 +8266,7 @@ const PhysicalAIFramework = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
             <div>• <strong>Start small, prove value, then expand</strong> – Resist the urge to boil the ocean</div>
             <div>• <strong>Frontline adoption is everything</strong> – Technology without adoption is shelfware</div>
-            <div>• <strong>Data quality > Model sophistication</strong> – 80% of effort is data, not algorithms</div>
+            <div>• <strong>Data quality &gt; Model sophistication</strong> – 80% of effort is data, not algorithms</div>
             <div>• <strong>Quick wins build momentum</strong> – Celebrate and communicate early successes</div>
             <div>• <strong>Executive sponsor is non-negotiable</strong> – Without air cover, projects die</div>
             <div>• <strong>Plan for scale from day one</strong> – Architecture decisions haunt you later</div>
@@ -8214,35 +8278,40 @@ const PhysicalAIFramework = () => {
 
 
 
+
+
   // ============================================
   // MAIN RENDER
   // ============================================
 
   return (
-    <div className="p-4 bg-slate-50 min-h-screen font-sans text-slate-800">
+    <div className="p-4 bg-slate-50 min-h-screen font-sans text-slate-800" >
       <h1 className="text-3xl font-extrabold text-center mb-2 tracking-tight text-slate-900">Physical & Industrial AI Reference Guide</h1>
       <p className="text-center text-slate-500 mb-6 text-sm max-w-2xl mx-auto">Founder reference guide to Physical and Industrial AI, helping us get up to speed fast and have deeper strategic discussions.</p>
 
       {/* Tab Navigation */}
-      <div className="flex flex-wrap gap-2 mb-4 justify-center">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => { setActiveTab(tab.id); setSelectedCell(null); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id
-              ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-100'
-              : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200 shadow-sm hover:shadow'
-              }`}
-          >
-            {tab.icon} {tab.name}
-          </button>
-        ))}
-      </div>
+      <div className="flex flex-wrap gap-2 mb-4 justify-center" >
+        {
+          tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(tab.id); setSelectedCell(null); }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id
+                ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-100'
+                : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200 shadow-sm hover:shadow'
+                }`}
+            >
+              {tab.icon} {tab.name}
+            </button>
+          ))
+        }
+      </div >
 
       {/* Tab Content */}
-      <div className="bg-white rounded-lg shadow p-4">
+      < div className="bg-white rounded-lg shadow p-4" >
         {activeTab === 'start' && <StartHereTab />}
         {activeTab === 'matrix' && <MatrixTab />}
+        {activeTab === 'valuechain' && <ValueChainTab verticals={verticals} lifecycleData={lifecycleData} />}
         {activeTab === 'framework' && <FrameworkTab />}
         {activeTab === 'layers' && <LayersTab />}
         {activeTab === 'industries' && <IndustriesTab />}
@@ -8250,34 +8319,116 @@ const PhysicalAIFramework = () => {
         {activeTab === 'strategies' && <StrategiesTab />}
         {activeTab === 'players' && <KeyPlayersTab />}
         {activeTab === 'resources' && <OtherResourcesTab />}
-      </div>
+      </div >
 
       {/* Footer */}
-      <div className="mt-4 text-center text-xs text-gray-500">
+      < div className="mt-4 text-center text-xs text-gray-500" >
         Physical & Industrial AI Reference Guide v4.0
-      </div>
+      </div >
 
       {/* Chat Button */}
-      <button
+      < button
         onClick={() => setChatOpen(!chatOpen)}
         className="fixed bottom-4 right-4 w-14 h-14 bg-slate-800 text-white rounded-full shadow-lg hover:bg-slate-700 hover:shadow-xl transition-all duration-200 flex items-center justify-center text-2xl z-50 ring-2 ring-white"
       >
         {chatOpen ? '✕' : '💬'}
-      </button>
+      </button >
 
       {/* Chat Panel */}
-      {chatOpen && <ChatPanel
-        setChatOpen={setChatOpen}
-        chatMessages={chatMessages} setChatMessages={setChatMessages}
-        chatInput={chatInput} setChatInput={setChatInput}
-        chatLoading={chatLoading} setChatLoading={setChatLoading}
-        activeTab={activeTab} setActiveTab={setActiveTab}
-        selectedVertical={selectedVertical} setSelectedVertical={setSelectedVertical}
-        selectedLayer={selectedLayer} setSelectedLayer={setSelectedLayer}
-        selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer}
-      />}
-    </div>
+      {
+        chatOpen && <ChatPanel
+          setChatOpen={setChatOpen}
+          chatMessages={chatMessages} setChatMessages={setChatMessages}
+          chatInput={chatInput} setChatInput={setChatInput}
+          chatLoading={chatLoading} setChatLoading={setChatLoading}
+          activeTab={activeTab} setActiveTab={setActiveTab}
+          selectedVertical={selectedVertical} setSelectedVertical={setSelectedVertical}
+          selectedLayer={selectedLayer} setSelectedLayer={setSelectedLayer}
+          selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer}
+        />
+      }
+    </div >
   );
 };
 
 
+
+// ============================================
+// VALUE CHAIN TAB
+// ============================================
+function ValueChainTab({ verticals, lifecycleData }) {
+  const stages = [
+    { id: 'design', name: 'Design', icon: '📐', desc: 'R&D, Engineering, Simulation' },
+    { id: 'build', name: 'Build', icon: '🏗️', desc: 'Construction, Manufacturing, Drilling' },
+    { id: 'operate', name: 'Operate', icon: '⚙️', desc: 'Real-time Control, Logistics, Production' },
+    { id: 'maintain', name: 'Maintain', icon: '🔧', desc: 'MRO, Asset Health, Retrofits' }
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center py-8 bg-slate-900 rounded-xl shadow-xl border border-slate-700 text-white">
+        <h2 className="text-3xl font-extrabold mb-2 tracking-tight">The Physical AI Value Chain</h2>
+        <p className="text-lg text-slate-300 mb-1 font-medium">Design → Build → Operate → Maintain</p>
+        <p className="text-sm text-slate-400 max-w-2xl mx-auto">
+          Mapping AI opportunities not just by technical layer, but by business process stage.
+        </p>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="p-3 text-left bg-slate-100 border-b-2 border-slate-200">Industry</th>
+              {stages.map(stage => (
+                <th key={stage.id} className="p-3 text-left bg-slate-50 border-b-2 border-slate-200 min-w-[200px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{stage.icon}</span>
+                    <div>
+                      <div className="font-bold text-slate-800">{stage.name}</div>
+                      <div className="text-xs text-slate-500 font-normal">{stage.desc}</div>
+                    </div>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {verticals.map(vertical => {
+              const vData = lifecycleData[vertical.id];
+              return (
+                <tr key={vertical.id} className="hover:bg-slate-50 border-b border-slate-100">
+                  <td className="p-3 font-bold text-slate-700 border-r border-slate-100 w-48">
+                    {vertical.name}
+                    <div className="text-xs text-slate-400 font-normal mt-1">{vertical.subtitle}</div>
+                  </td>
+                  {stages.map(stage => {
+                    const cell = vData ? vData[stage.id] : null;
+                    return (
+                      <td key={stage.id} className="p-3 border-r border-slate-100 align-top">
+                        {cell ? (
+                          <div className="group cursor-pointer">
+                            <div className="font-bold text-indigo-700 text-sm mb-1 group-hover:text-indigo-900 transition-colors">
+                              {cell.title}
+                            </div>
+                            <div className="text-xs text-slate-600 leading-relaxed">
+                              {cell.text}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-300 italic">No data</div>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// Ensure component is available globally for index.html
+window.PhysicalAIFramework = PhysicalAIFramework;
