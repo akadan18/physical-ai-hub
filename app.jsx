@@ -3732,6 +3732,43 @@ const PhysicalAIFramework = () => {
         </div>
       </div>
 
+      {/* Section 3: The Value Chain Perspective */}
+      <div className="bg-white rounded-lg border p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">The Value Chain Perspective</h2>
+        <p className="text-sm text-gray-600 mb-4">While the Matrix maps technologies to industries, the Value Chain view maps AI opportunities to business processes. It slices the problem differently: across the asset lifecycle.</p>
+        <div className="grid md:grid-cols-4 gap-4 mb-4 text-center">
+          <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+            <div className="text-2xl mb-1">📐</div>
+            <div className="font-semibold text-gray-800 text-sm">Design</div>
+            <div className="text-xs text-gray-500 mt-1">R&D, Simulation</div>
+          </div>
+          <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+            <div className="text-2xl mb-1">🏗️</div>
+            <div className="font-semibold text-gray-800 text-sm">Build</div>
+            <div className="text-xs text-gray-500 mt-1">Construction, Mfg</div>
+          </div>
+          <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+            <div className="text-2xl mb-1">⚙️</div>
+            <div className="font-semibold text-gray-800 text-sm">Operate</div>
+            <div className="text-xs text-gray-500 mt-1">Control, Logistics</div>
+          </div>
+          <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+            <div className="text-2xl mb-1">🔧</div>
+            <div className="font-semibold text-gray-800 text-sm">Maintain</div>
+            <div className="text-xs text-gray-500 mt-1">MRO, Retrofits</div>
+          </div>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-blue-800">
+            <span>📍</span>
+            <span className="font-medium text-sm">Explore in:</span>
+          </div>
+          <p className="text-sm text-blue-700 mt-1">
+            <button onClick={() => setActiveTab('valuechain')} className="underline hover:text-blue-900 font-medium">Value Chain</button> — See how AI transforms each stage of the lifecycle. Use this view when your product or thesis is process-specific (e.g., "Generative Design" or "Predictive Maintenance") rather than vertical-specific.
+          </p>
+        </div>
+      </div>
+
       {/* Section 3: Technology Stack */}
       <div className="bg-white rounded-lg border p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">The Technology Stack: Understanding the Layers</h2>
@@ -8323,7 +8360,7 @@ const PhysicalAIFramework = () => {
 
       {/* Footer */}
       < div className="mt-4 text-center text-xs text-gray-500" >
-        Physical & Industrial AI Reference Guide v4.0
+        Physical & Industrial AI Reference Guide v5.0
       </div >
 
       {/* Chat Button */}
