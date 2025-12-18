@@ -4013,7 +4013,7 @@ const PhysicalAIFramework = () => {
       <div className="bg-gray-50 rounded-lg border p-6 text-center">
         <h2 className="text-lg font-bold text-gray-900 mb-2">About This Guide</h2>
         <p className="text-sm text-gray-600 mb-2">Point-in-time snapshot of a fast-moving market. Research synthesized from public sources, filings, interviews, and industry reports. Updated periodically.</p>
-        <p className="text-sm font-semibold text-gray-700">Version 4.0 | December 2025</p>
+        <p className="text-sm font-semibold text-gray-700">Version 5.0 | December 2025</p>
       </div>
     </div>
   );
