@@ -125,7 +125,415 @@ const ChatPanel = ({
   );
 };
 
+// ============================================
+// OPPORTUNITY MAP VIEWER COMPONENT
+// ============================================
+
+// Get Recharts from global window object (loaded via CDN)
+const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip: RechartsTooltip, ResponsiveContainer, Cell } = window.Recharts || {};
+
+// Domain data for the Opportunity Map
+const opportunityDomainData = [
+  {
+    domain: "PLAN", fullName: "Planning", color: "#8b5cf6", hasResearch: true,
+    totalHeadcount: 375000, laborSpend: 35000000000, displacementOpportunity: 18000000000, automationPct: 51,
+    roles: [
+      { name: "Demand Planners", tier: 6, headcount: 65000, avgSalary: 110000, automationPct: 65, domain: "Demand Plan", notes: "S&OP/IBP forecasting" },
+      { name: "Material/Supply Planners", tier: 5, headcount: 180000, avgSalary: 95000, automationPct: 55, domain: "Material Plan", notes: "MRP/inventory planning" },
+      { name: "Production Planners & Schedulers", tier: 4, headcount: 130000, avgSalary: 85000, automationPct: 50, domain: "Production Plan", notes: "Shop floor scheduling" }
+    ]
+  },
+  {
+    domain: "DESIGN", fullName: "Design & Engineering", color: "#64748b", hasResearch: true,
+    totalHeadcount: 625000, laborSpend: 107000000000, displacementOpportunity: 55000000000, automationPct: 50,
+    roles: [
+      { name: "PLM/Product Lifecycle Managers", tier: 6, headcount: 275000, avgSalary: 172000, automationPct: 45, domain: "Product Life", notes: "PLM orchestration" },
+      { name: "Engineering/CAD/CAE", tier: 5, headcount: 350000, avgSalary: 145000, automationPct: 55, domain: "Engineering", notes: "CAD/CAE design" },
+      { name: "Recipe/Process Engineers", tier: 4, headcount: 100000, avgSalary: 101000, automationPct: 45, domain: "Recipes", notes: "Recipe authoring" },
+      { name: "Control Configuration", tier: 3, headcount: 30000, avgSalary: 109000, automationPct: 50, domain: "Control Config", notes: "PLC/DCS programming" },
+      { name: "Digital Twin/Simulation", tier: 1, headcount: 25000, avgSalary: 130000, automationPct: 40, domain: "Digital Twin", notes: "Virtual commissioning" }
+    ]
+  },
+  {
+    domain: "SOURCE", fullName: "Sourcing & Procurement", color: "#f59e0b", hasResearch: true,
+    totalHeadcount: 1005000, laborSpend: 70000000000, displacementOpportunity: 40000000000, automationPct: 57,
+    roles: [
+      { name: "Strategic Sourcing & Category Managers", tier: 6, headcount: 85000, avgSalary: 175000, automationPct: 35, domain: "Sourcing", notes: "Supplier strategy" },
+      { name: "Buyers & Purchasing Agents", tier: 5, headcount: 520000, avgSalary: 95000, automationPct: 70, domain: "Procurement", notes: "Tactical P2P" },
+      { name: "Receiving Clerks & Material Handlers", tier: 4, headcount: 400000, avgSalary: 55000, automationPct: 75, domain: "Receiving", notes: "Inbound dock operations" }
+    ]
+  },
+  {
+    domain: "MAKE", fullName: "Manufacturing & Production", color: "#ec4899", hasResearch: true,
+    totalHeadcount: 3220000, laborSpend: 156000000000, displacementOpportunity: 60000000000, automationPct: 37,
+    roles: [
+      { name: "Capacity Planners", tier: 6, headcount: 50000, avgSalary: 120000, automationPct: 60, domain: "Capacity Plan", notes: "Rough-cut capacity" },
+      { name: "Work Order Coordinators", tier: 5, headcount: 70000, avgSalary: 85000, automationPct: 55, domain: "Product Orders", notes: "Production order management" },
+      { name: "Production Schedulers", tier: 4, headcount: 90000, avgSalary: 75000, automationPct: 50, domain: "Scheduling", notes: "Finite scheduling" },
+      { name: "Machine/Process Operators", tier: 3, headcount: 400000, avgSalary: 65000, automationPct: 45, domain: "Operator Ctrl", notes: "HMI/DCS control" },
+      { name: "I&C Technicians & Controls Engineers", tier: 2, headcount: 125000, avgSalary: 85000, automationPct: 30, domain: "Sensors", notes: "SCADA/DCS, instrumentation" },
+      { name: "CNC Operators & Machinists", tier: 1, headcount: 600000, avgSalary: 58000, automationPct: 35, domain: "Assets", notes: "Equipment operation" },
+      { name: "Assemblers & Fabricators", tier: 0, headcount: 1885000, avgSalary: 44000, automationPct: 35, domain: "Assembly", notes: "Manual assembly" }
+    ]
+  },
+  {
+    domain: "MAINTAIN", fullName: "Maintenance & Reliability", color: "#10b981", hasResearch: true,
+    totalHeadcount: 3180000, laborSpend: 185000000000, displacementOpportunity: 55000000000, automationPct: 30,
+    roles: [
+      { name: "Reliability Engineers & Asset Managers", tier: 5, headcount: 100000, avgSalary: 155000, automationPct: 40, domain: "Asset Mgmt", notes: "RCM, FMEA" },
+      { name: "Maintenance Planners & Schedulers", tier: 4, headcount: 30000, avgSalary: 85000, automationPct: 55, domain: "Maint Planning", notes: "Work order planning" },
+      { name: "Controls & I&C Technicians", tier: 3, headcount: 75000, avgSalary: 95000, automationPct: 35, domain: "Ctrl Health", notes: "PLC/SCADA health" },
+      { name: "Condition Monitoring Specialists", tier: 2, headcount: 50000, avgSalary: 85000, automationPct: 65, domain: "Condition Mon", notes: "Vibration, thermal, PdM" },
+      { name: "MRO Storeroom & Parts Staff", tier: 1, headcount: 65000, avgSalary: 55000, automationPct: 55, domain: "Parts/Material", notes: "Spare parts management" },
+      { name: "Maintenance Technicians & Trades", tier: 0, headcount: 2860000, avgSalary: 62000, automationPct: 25, domain: "Repair/Service", notes: "Mechanics, electricians" }
+    ]
+  },
+  {
+    domain: "QUALITY", fullName: "Quality Assurance", color: "#3b82f6", hasResearch: true,
+    totalHeadcount: 1000000, laborSpend: 65000000000, displacementOpportunity: 30000000000, automationPct: 46,
+    roles: [
+      { name: "QA Managers & Quality Engineers", tier: 5, headcount: 180000, avgSalary: 120000, automationPct: 35, domain: "Quality Mgmt", notes: "QMS, CAPA, compliance" },
+      { name: "QC Systems Managers & SPC Analysts", tier: 4, headcount: 150000, avgSalary: 95000, automationPct: 55, domain: "QC / SPC", notes: "Statistical process control" },
+      { name: "Process Monitoring Engineers", tier: 3, headcount: 70000, avgSalary: 90000, automationPct: 60, domain: "Process Monit", notes: "Historian analysis" },
+      { name: "Inspection & NDT Technicians", tier: 2, headcount: 150000, avgSalary: 65000, automationPct: 65, domain: "Inspection", notes: "Vision systems, ultrasonic" },
+      { name: "Metrologists & CMM Operators", tier: 1, headcount: 100000, avgSalary: 70000, automationPct: 55, domain: "Measure", notes: "Precision measurement" },
+      { name: "Manual QC Inspectors", tier: 0, headcount: 350000, avgSalary: 48000, automationPct: 60, domain: "Manual QC", notes: "Visual inspection" }
+    ]
+  },
+  {
+    domain: "DELIVER", fullName: "Logistics & Fulfillment", color: "#06b6d4", hasResearch: true,
+    totalHeadcount: 5039000, laborSpend: 250000000000, displacementOpportunity: 120000000000, automationPct: 48,
+    roles: [
+      { name: "Network Design & Distribution Planners", tier: 6, headcount: 20000, avgSalary: 145000, automationPct: 45, domain: "Distribution", notes: "SCND, strategic inventory" },
+      { name: "Order Management & Customer Service", tier: 5, headcount: 934000, avgSalary: 70000, automationPct: 65, domain: "Order Mgmt", notes: "Order entry, ATP" },
+      { name: "Logistics Coordinators & Supervisors", tier: 4, headcount: 350000, avgSalary: 75000, automationPct: 50, domain: "Logistics", notes: "Transportation, warehouse" },
+      { name: "Tracking & Visibility Analysts", tier: 2, headcount: 60000, avgSalary: 65000, automationPct: 75, domain: "Tracking", notes: "RFID, GPS" },
+      { name: "Material Flow Equipment Operators", tier: 1, headcount: 175000, avgSalary: 52000, automationPct: 65, domain: "Material Flow", notes: "AMR, conveyor, forklift" },
+      { name: "Pickers, Packers & Warehouse Workers", tier: 0, headcount: 3500000, avgSalary: 50000, automationPct: 50, domain: "Pick/Pack", notes: "Order fulfillment" }
+    ]
+  },
+  {
+    domain: "SUPPORT", fullName: "Field Service & Support", color: "#f97316", hasResearch: true,
+    totalHeadcount: 1200000, laborSpend: 82000000000, displacementOpportunity: 45000000000, automationPct: 55,
+    roles: [
+      { name: "Service Parts Planners", tier: 6, headcount: 60000, avgSalary: 100000, automationPct: 55, domain: "Service Plan", notes: "Probabilistic demand forecasting" },
+      { name: "Dispatchers & Coordinators", tier: 5, headcount: 325000, avgSalary: 65000, automationPct: 82, domain: "Field Service", notes: "81.92% task automatability" },
+      { name: "Install/Replace Technicians", tier: 0, headcount: 815000, avgSalary: 70000, automationPct: 30, domain: "Install/Replace", notes: "Millwrights, I&C, rigging" }
+    ]
+  },
+  {
+    domain: "FINANCE", fullName: "Financial Operations", color: "#a855f7", hasResearch: true,
+    totalHeadcount: 404000, laborSpend: 53400000000, displacementOpportunity: 25300000000, automationPct: 50,
+    roles: [
+      { name: "Supply Chain Finance Analysts & Managers", tier: 6, headcount: 65000, avgSalary: 175000, automationPct: 75, domain: "Financial", notes: "IBP/EPM, FP&A" },
+      { name: "Operational Finance", tier: 4, headcount: 339000, avgSalary: 125000, automationPct: 45, domain: "OEE", notes: "Plant Controllers, Cost Accountants" }
+    ]
+  }
+];
+
+// Format helpers for Opportunity Map
+const formatOppNumber = (num) => {
+  if (num === null) return "—";
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+  return num.toString();
+};
+
+const formatOppCurrency = (num) => {
+  if (num === null) return "—";
+  if (num >= 1000000000) return `$${(num / 1000000000).toFixed(0)}B`;
+  if (num >= 1000000) return `$${(num / 1000000).toFixed(0)}M`;
+  return `$${num.toLocaleString()}`;
+};
+
+// Calculate totals
+const opportunityTotals = opportunityDomainData.reduce((acc, d) => {
+  if (d.hasResearch && d.totalHeadcount) {
+    acc.headcount += d.totalHeadcount;
+    acc.laborSpend += d.laborSpend;
+    acc.displacement += d.displacementOpportunity;
+  }
+  return acc;
+}, { headcount: 0, laborSpend: 0, displacement: 0 });
+
+// Prepare chart data
+const opportunityChartData = opportunityDomainData.map(d => ({
+  domain: d.domain,
+  fullName: d.fullName,
+  headcount: d.totalHeadcount ? d.totalHeadcount / 1000 : 0,
+  laborSpend: d.laborSpend ? d.laborSpend / 1000000000 : 0,
+  displacement: d.displacementOpportunity ? d.displacementOpportunity / 1000000000 : 0,
+  hasResearch: d.hasResearch,
+  color: d.color
+}));
+
+const OpportunityMapViewer = () => {
+  const [activeOppTab, setActiveOppTab] = useState('overview');
+  const [selectedDomain, setSelectedDomain] = useState(null);
+  const [chartMetric, setChartMetric] = useState('headcount');
+
+  const oppTabs = [
+    { id: 'overview', name: 'Domain Overview', icon: '📊' },
+    { id: 'roles', name: 'Role Details', icon: '👥' },
+    { id: 'summary', name: 'Summary Stats', icon: '📈' }
+  ];
+
+  return (
+    <div style={{ backgroundColor: '#0f172a', borderRadius: '12px', padding: '24px', color: '#e2e8f0' }}>
+      {/* Tab Navigation */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        {oppTabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveOppTab(tab.id)}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: '600',
+              transition: 'all 0.2s',
+              backgroundColor: activeOppTab === tab.id ? '#3b82f6' : '#1e293b',
+              color: activeOppTab === tab.id ? '#fff' : '#94a3b8'
+            }}
+          >
+            {tab.icon} {tab.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Overview Tab */}
+      {activeOppTab === 'overview' && (
+        <div>
+          {/* Summary Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#22c55e' }}>{formatOppNumber(opportunityTotals.headcount)}</div>
+              <div style={{ fontSize: '14px', color: '#94a3b8' }}>US Workers Tracked</div>
+            </div>
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#3b82f6' }}>{formatOppCurrency(opportunityTotals.laborSpend)}</div>
+              <div style={{ fontSize: '14px', color: '#94a3b8' }}>Annual Labor Spend</div>
+            </div>
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+              <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#f59e0b' }}>{formatOppCurrency(opportunityTotals.displacement)}</div>
+              <div style={{ fontSize: '14px', color: '#94a3b8' }}>Displacement Opportunity</div>
+            </div>
+          </div>
+
+          {/* Metric Selector */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', justifyContent: 'center' }}>
+            {[
+              { id: 'headcount', label: 'Headcount (K)' },
+              { id: 'laborSpend', label: 'Labor Spend ($B)' },
+              { id: 'displacement', label: 'Displacement ($B)' }
+            ].map(m => (
+              <button
+                key={m.id}
+                onClick={() => setChartMetric(m.id)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  backgroundColor: chartMetric === m.id ? '#22c55e' : '#334155',
+                  color: chartMetric === m.id ? '#fff' : '#94a3b8'
+                }}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Bar Chart */}
+          {BarChart && (
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={opportunityChartData} layout="vertical" margin={{ left: 80, right: 20, top: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis type="number" stroke="#64748b" />
+                  <YAxis type="category" dataKey="domain" stroke="#64748b" tick={{ fontSize: 12 }} />
+                  <RechartsTooltip
+                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                    labelStyle={{ color: '#e2e8f0' }}
+                  />
+                  <Bar dataKey={chartMetric} radius={[0, 4, 4, 0]}>
+                    {opportunityChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Domain Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+            {opportunityDomainData.filter(d => d.hasResearch).map(domain => (
+              <div
+                key={domain.domain}
+                onClick={() => setSelectedDomain(selectedDomain === domain.domain ? null : domain.domain)}
+                style={{
+                  backgroundColor: '#1e293b',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  border: `2px solid ${selectedDomain === domain.domain ? domain.color : '#334155'}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: domain.color }}>{domain.fullName}</div>
+                  <div style={{ backgroundColor: `${domain.color}20`, color: domain.color, padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>
+                    {domain.domain}
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', fontSize: '12px' }}>
+                  <div>
+                    <div style={{ color: '#64748b' }}>Workers</div>
+                    <div style={{ fontWeight: '600', color: '#e2e8f0' }}>{formatOppNumber(domain.totalHeadcount)}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#64748b' }}>Labor</div>
+                    <div style={{ fontWeight: '600', color: '#e2e8f0' }}>{formatOppCurrency(domain.laborSpend)}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#64748b' }}>Opportunity</div>
+                    <div style={{ fontWeight: '600', color: '#22c55e' }}>{formatOppCurrency(domain.displacementOpportunity)}</div>
+                  </div>
+                </div>
+                {selectedDomain === domain.domain && (
+                  <div style={{ marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '16px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#94a3b8', marginBottom: '8px' }}>Roles ({domain.roles.length})</div>
+                    {domain.roles.map(role => (
+                      <div key={role.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #334155', fontSize: '12px' }}>
+                        <span style={{ color: '#e2e8f0' }}>{role.name}</span>
+                        <span style={{ color: '#94a3b8' }}>{formatOppNumber(role.headcount)} • T{role.tier}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Roles Tab */}
+      {activeOppTab === 'roles' && (
+        <div>
+          <div style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px' }}>All Roles by Domain</div>
+            {opportunityDomainData.filter(d => d.hasResearch).map(domain => (
+              <div key={domain.domain} style={{ marginBottom: '24px' }}>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: domain.color, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {domain.fullName}
+                  <span style={{ fontSize: '12px', backgroundColor: `${domain.color}20`, padding: '2px 8px', borderRadius: '4px' }}>
+                    {domain.roles.length} roles
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  {domain.roles.sort((a, b) => b.tier - a.tier).map(role => (
+                    <div key={role.name} style={{
+                      display: 'grid',
+                      gridTemplateColumns: '60px 1fr 100px 100px 80px',
+                      gap: '12px',
+                      padding: '12px',
+                      backgroundColor: '#0f172a',
+                      borderRadius: '8px',
+                      alignItems: 'center',
+                      fontSize: '13px'
+                    }}>
+                      <div style={{ backgroundColor: domain.color, color: '#fff', padding: '4px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: '600' }}>
+                        T{role.tier}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '600', color: '#e2e8f0' }}>{role.name}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>{role.notes}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: '600', color: '#22c55e' }}>{formatOppNumber(role.headcount)}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>workers</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: '600', color: '#3b82f6' }}>${(role.avgSalary / 1000).toFixed(0)}K</div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>avg salary</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{
+                          fontWeight: '600',
+                          color: role.automationPct >= 60 ? '#ef4444' : role.automationPct >= 40 ? '#f59e0b' : '#22c55e'
+                        }}>
+                          {role.automationPct}%
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>automation</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Summary Tab */}
+      {activeOppTab === 'summary' && (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px' }}>
+              <div style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>📊 Market Overview</div>
+              <div style={{ fontSize: '14px', color: '#e2e8f0', lineHeight: '1.6' }}>
+                <p style={{ marginBottom: '12px' }}>This opportunity map tracks <strong style={{ color: '#22c55e' }}>{formatOppNumber(opportunityTotals.headcount)}</strong> US workers across 9 operational domains.</p>
+                <p style={{ marginBottom: '12px' }}>Combined annual labor spend: <strong style={{ color: '#3b82f6' }}>{formatOppCurrency(opportunityTotals.laborSpend)}</strong></p>
+                <p>Total displacement opportunity: <strong style={{ color: '#f59e0b' }}>{formatOppCurrency(opportunityTotals.displacement)}</strong></p>
+              </div>
+            </div>
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px' }}>
+              <div style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>🎯 Top Domains by Opportunity</div>
+              {opportunityDomainData
+                .filter(d => d.hasResearch)
+                .sort((a, b) => b.displacementOpportunity - a.displacementOpportunity)
+                .slice(0, 5)
+                .map((d, i) => (
+                  <div key={d.domain} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #334155' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#64748b', fontSize: '12px', width: '20px' }}>#{i + 1}</span>
+                      <span style={{ color: d.color, fontWeight: '600' }}>{d.domain}</span>
+                    </div>
+                    <span style={{ color: '#22c55e', fontWeight: '600' }}>{formatOppCurrency(d.displacementOpportunity)}</span>
+                  </div>
+                ))}
+            </div>
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px' }}>
+              <div style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '8px' }}>👥 Top Domains by Headcount</div>
+              {opportunityDomainData
+                .filter(d => d.hasResearch)
+                .sort((a, b) => b.totalHeadcount - a.totalHeadcount)
+                .slice(0, 5)
+                .map((d, i) => (
+                  <div key={d.domain} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #334155' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#64748b', fontSize: '12px', width: '20px' }}>#{i + 1}</span>
+                      <span style={{ color: d.color, fontWeight: '600' }}>{d.domain}</span>
+                    </div>
+                    <span style={{ color: '#3b82f6', fontWeight: '600' }}>{formatOppNumber(d.totalHeadcount)}</span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const PhysicalAIFramework = () => {
+  // Master section navigation
+  const [activeSection, setActiveSection] = useState('guide'); // 'guide' | 'opportunity'
+
   const [activeTab, setActiveTab] = useState('start');
   const [selectedCell, setSelectedCell] = useState(null);
   const [selectedBattle, setSelectedBattle] = useState(null);
@@ -3609,6 +4017,7 @@ const PhysicalAIFramework = () => {
   const tabs = [
     { id: 'start', name: 'Start Here', icon: '🏁' },
     { id: 'matrix', name: 'The Matrix', icon: '🏗️' },
+    { id: 'heatmap', name: 'Heatmap', icon: '🔥' },
     { id: 'valuechain', name: 'Value Chain', icon: '🔗' },
     { id: 'framework', name: 'Framework', icon: '🧩' },
     { id: 'layers', name: 'Layers', icon: '📚' },
@@ -5843,6 +6252,258 @@ const PhysicalAIFramework = () => {
   // ============================================
 
   // ============================================
+
+  // ============================================
+  // TAB: HEATMAP
+  // ============================================
+
+  const IndustrialHeatmapTab = () => {
+    const [selectedCell, setSelectedCell] = useState(null);
+
+    const layers = [
+      { id: 'L5', name: 'Supply Chain', type: 'digital' },
+      { id: 'L4', name: 'Enterprise', type: 'digital' },
+      { id: 'L3', name: 'Operations', type: 'digital' },
+      { id: 'L2', name: 'Controls', type: 'physical' },
+      { id: 'L1', name: 'Sensors', type: 'physical' },
+      { id: 'L0', name: 'Equipment', type: 'physical' },
+      { id: 'L-1', name: 'Labor', type: 'labor' }
+    ];
+
+    const valueChain = ['PLAN', 'DESIGN', 'SOURCE', 'MAKE', 'MAINTAIN', 'QUALITY', 'DELIVER', 'SUPPORT', 'COMPLY', 'FINANCE'];
+
+    const cellData = {
+      "L5-PLAN": { title: "Demand Planning (S&OP)", layer: "L5 Supply Chain", layerType: "digital", opp: "81%", priority: "high", desc: "Sales & Operations Planning is the monthly cross-functional process aligning demand forecasts with supply capabilities. Despite enterprise tools being available for decades, 81% of companies still run S&OP in Excel because enterprise tools don't match planner workflows. Only 15% report successful S&OP implementation.", systems: ["S&OP", "IBP", "ERP", "APS", "Demand Planning"], agents: "Exception autopilot, data reconciliation agent, demand sensing, scenario planning automation, cross-functional alignment agent", source: "Gartner 2024, ABCSupplyChain Survey - 81% Excel usage confirmed" },
+      "L5-DESIGN": { title: "Product Lifecycle Management", layer: "L5 Supply Chain", layerType: "digital", opp: "55%", priority: "med", desc: "Strategic product portfolio decisions, NPI (New Product Introduction) planning, and product rationalization. Many organizations still use spreadsheets to track product launch timelines and manage BOM changes across functions.", systems: ["PLM", "CAD", "PDM", "BOM Management"], agents: "NPI coordination agent, BOM change impact analyzer, portfolio optimization, engineering-supply chain sync", source: "Industry estimates based on PLM adoption rates" },
+      "L5-SOURCE": { title: "Strategic Sourcing", layer: "L5 Supply Chain", layerType: "digital", opp: "67%", priority: "high", desc: "Supply network design, supplier selection, and strategic procurement decisions. 67.4% of supply chain professionals use Excel as their primary management tool for strategic sourcing decisions.", systems: ["SRM", "CLM", "Sourcing", "Supplier Portal"], agents: "Supplier risk monitoring agent, total cost analyzer, contract compliance agent, supplier collaboration coordinator", source: "BluJay Solutions - 67.4% Excel usage in supply chain" },
+      "L5-MAKE": { title: "Capacity Planning", layer: "L5 Supply Chain", layerType: "digital", opp: "70%", priority: "med", desc: "Long-term capacity planning and rough-cut capacity analysis. 70% of organizations lack real-time visibility into capacity constraints. Planners maintain shadow spreadsheets for scenarios their ERP can't handle.", systems: ["S&OP", "APS", "Capacity Planning", "RCCP"], agents: "Capacity scenario modeler, constraint identification agent, make-vs-buy analyzer, capacity investment optimizer", source: "Loghub Research - 70% lack visibility" },
+      "L5-DELIVER": { title: "Distribution Network", layer: "L5 Supply Chain", layerType: "digital", opp: "46%", priority: "high", desc: "Transportation management and network optimization. 46% of logistics professionals use Excel as their primary ops tool. One case shows $150M in freight managed by one person with Excel.", systems: ["TMS", "WMS", "Network Design", "Carrier Management"], agents: "Route optimization agent, carrier selection assistant, freight audit automation, network design optimizer", source: "G2 Survey - 46% Excel as primary ops tool; Miller Western example" },
+      "L5-SUPPORT": { title: "Service Planning", layer: "L5 Supply Chain", layerType: "digital", opp: "60%", priority: "med", desc: "Aftermarket and service parts planning. Service parts planning is often disconnected from main S&OP processes. Aftermarket can represent 30-50% of profit but planning is frequently manual.", systems: ["FSM", "CRM", "Service Parts Planning", "Warranty"], agents: "Service demand forecasting agent, parts optimization, warranty claim analyzer, service level optimizer", source: "Industry estimates based on aftermarket planning maturity" },
+      "L5-COMPLY": { title: "Trade Compliance", layer: "L5 Supply Chain", layerType: "digital", opp: "45%", priority: "med", desc: "Import/export compliance, tariff management, and trade documentation. Many companies manually track trade regulations and classify products using spreadsheets.", systems: ["GTS", "CLM", "Trade Compliance", "Customs"], agents: "Tariff classification agent, compliance monitoring, document automation, trade regulation tracker", source: "Industry estimates based on GTS adoption" },
+      "L5-FINANCE": { title: "Financial Planning (IBP)", layer: "L5 Supply Chain", layerType: "digital", opp: "75%", priority: "high", desc: "Integrated Business Planning connecting operational plans to financial outcomes. Finance teams spend 35% on reporting and 25% on manual reconciliation bridging operational and financial numbers.", systems: ["IBP", "EPM", "FP&A", "Financial Planning"], agents: "Plan-to-finance reconciliation agent, variance analyzer, scenario financial impact modeler", source: "S&OP Research - Finance role time allocation" },
+
+      "L4-PLAN": { title: "Material Planning (MRP)", layer: "L4 Enterprise", layerType: "digital", opp: "65%", priority: "med", desc: "Material Requirements Planning and inventory optimization. While MRP runs in ERP, planners export to Excel for exception handling and what-if analysis.", systems: ["ERP", "MRP", "Inventory Management", "APS"], agents: "MRP exception handler, safety stock optimizer, reorder point analyzer, inventory segmentation agent", source: "Industry estimates based on ERP utilization studies" },
+      "L4-DESIGN": { title: "Engineering (CAD/ECM)", layer: "L4 Enterprise", layerType: "digital", opp: "50%", priority: "high", desc: "Engineering change management and design release. ECOs often require manual coordination across systems. Revision control and impact analysis done in spreadsheets.", systems: ["CAD", "ECM", "PDM", "BOM Management"], agents: "ECO impact analyzer, design-to-manufacturing sync agent, revision control automation", source: "Industry estimates based on ECM adoption" },
+      "L4-SOURCE": { title: "Procurement (P2P)", layer: "L4 Enterprise", layerType: "digital", opp: "50%", priority: "high", desc: "Procure-to-Pay process execution. 50% of procurement organizations use Excel for data analysis, spend analysis, and supplier performance tracking.", systems: ["SRM", "P2P", "Procurement", "AP Automation"], agents: "Spend analyzer, PO optimization agent, invoice matching automation, supplier performance tracker", source: "LevaData 2019 - 50% Excel usage in procurement" },
+      "L4-MAKE": { title: "Work Orders", layer: "L4 Enterprise", layerType: "digital", opp: "55%", priority: "med", desc: "Production work order management connecting ERP to shop floor. Work order tracking often involves manual data entry alongside ERP transactions.", systems: ["ERP", "MES", "Work Order Management"], agents: "Work order prioritization agent, status tracking automation, material availability checker", source: "Industry estimates based on ERP-MES integration" },
+      "L4-MAINTAIN": { title: "Asset Management (EAM)", layer: "L4 Enterprise", layerType: "digital", opp: "60%", priority: "high", desc: "Enterprise Asset Management. 60% of organizations use Excel for maintenance management functions including lifecycle decisions and reliability analysis.", systems: ["EAM", "APM", "Asset Registry", "Reliability"], agents: "Asset lifecycle optimizer, reliability prediction agent, maintenance strategy advisor", source: "CMMS vendor surveys - 60% Excel for maintenance" },
+      "L4-QUALITY": { title: "Quality Management (QMS)", layer: "L4 Enterprise", layerType: "digital", opp: "45%", priority: "med", desc: "Quality Management System including CAPA, NCR, and audit management. Root cause analysis and trend identification often involve manual spreadsheet analysis.", systems: ["QMS", "CAPA", "NCR", "Audit Management"], agents: "Root cause analyzer, CAPA tracking automation, quality trend identifier", source: "Industry estimates based on QMS adoption" },
+      "L4-DELIVER": { title: "Order Management", layer: "L4 Enterprise", layerType: "digital", opp: "40%", priority: "med", desc: "Order management and Available-to-Promise. Order promising and allocation decisions frequently require manual intervention for complex orders.", systems: ["OMS", "ATP", "Order Promising", "Allocation"], agents: "ATP optimizer, order prioritization agent, delivery promise assistant", source: "Industry estimates based on OMS adoption" },
+      "L4-SUPPORT": { title: "Field Service Management", layer: "L4 Enterprise", layerType: "digital", opp: "50%", priority: "med", desc: "Field service dispatching and technician management. Scheduling, route optimization, and parts availability often involve manual coordination.", systems: ["FSM", "CRM", "Dispatch", "Mobile Service"], agents: "Technician scheduling optimizer, parts availability checker, service route optimizer", source: "Industry estimates based on FSM adoption" },
+      "L4-COMPLY": { title: "Compliance (GRC)", layer: "L4 Enterprise", layerType: "digital", opp: "55%", priority: "high", desc: "Governance, Risk, and Compliance management. Compliance tracking and audit preparation require extensive manual data gathering.", systems: ["GRC", "Audit", "Regulatory", "Risk Management"], agents: "Compliance monitoring agent, audit preparation automation, regulatory change tracker", source: "Industry estimates based on GRC adoption" },
+      "L4-FINANCE": { title: "Cost Accounting", layer: "L4 Enterprise", layerType: "digital", opp: "65%", priority: "med", desc: "Product costing and variance analysis. Standard cost maintenance and variance investigation frequently require manual spreadsheet analysis.", systems: ["ERP", "EPM", "Cost Accounting", "Variance Analysis"], agents: "Cost variance analyzer, standard cost updater, allocation optimizer", source: "Industry estimates based on cost accounting practices" },
+
+      "L3-PLAN": { title: "Production Scheduling", layer: "L3 Operations", layerType: "digital", opp: "70%", priority: "high", desc: "Detailed production scheduling and sequencing. Only 11% of organizations tie S&OP to execution effectively. 70% rely on manual scheduling methods.", systems: ["APS", "MES", "Scheduling", "Sequencing"], agents: "Schedule optimization agent, changeover minimizer, constraint-aware scheduler", source: "Supply Chain Brief - Only 11% tie S&OP to execution" },
+      "L3-DESIGN": { title: "Recipe Management", layer: "L3 Operations", layerType: "digital", opp: "40%", priority: "low", desc: "Recipe and formula management for process industries. Typically well-controlled in MES/LIMS due to regulatory requirements.", systems: ["MES", "LIMS", "Recipe Management", "Batch"], agents: "Recipe optimization agent, parameter tuning assistant, formula cost optimizer", source: "Industry estimates - higher automation due to regulatory drivers" },
+      "L3-SOURCE": { title: "Receiving / Inbound", layer: "L3 Operations", layerType: "digital", opp: "45%", priority: "med", desc: "Warehouse receiving operations. Receipt verification, put-away optimization, and dock scheduling involve manual coordination.", systems: ["WMS", "ERP", "Receiving", "Dock Scheduling"], agents: "Dock scheduling optimizer, put-away assistant, receipt verification automation", source: "Industry estimates based on WMS adoption" },
+      "L3-MAKE": { title: "Shop Floor Execution", layer: "L3 Operations", layerType: "digital", opp: "55%", priority: "high", desc: "Manufacturing Execution System operations. Only 32% of planners migrate to new tools. Shop floor tracking often involves paper and whiteboards.", systems: ["MES", "MOM", "Shop Floor", "Work Instructions"], agents: "Production tracking automation, work instruction delivery agent, bottleneck identifier", source: "S&OP Research - Only 32% migrate to new tools" },
+      "L3-MAINTAIN": { title: "Maintenance Execution", layer: "L3 Operations", layerType: "digital", opp: "60%", priority: "high", desc: "CMMS and preventive maintenance execution. 60% of organizations use Excel for CMMS functions including work orders and PM scheduling.", systems: ["CMMS", "PM", "Work Orders", "Maintenance"], agents: "PM scheduling optimizer, work order prioritization, maintenance history analyzer", source: "CMMS vendor surveys - 60% Excel usage" },
+      "L3-QUALITY": { title: "Quality Control (SPC)", layer: "L3 Operations", layerType: "digital", opp: "50%", priority: "high", desc: "Statistical Process Control and lab management. Control limit setting and trend analysis often involve manual interpretation.", systems: ["SPC", "LIMS", "QC", "Lab Management"], agents: "SPC monitoring agent, out-of-control response advisor, trend analyzer", source: "Industry estimates based on SPC/LIMS adoption" },
+      "L3-DELIVER": { title: "Shipping / Outbound", layer: "L3 Operations", layerType: "digital", opp: "40%", priority: "high", desc: "Warehouse shipping operations. Load planning and carrier coordination involve manual processes alongside WMS/TMS.", systems: ["WMS", "TMS", "Shipping", "Load Planning"], agents: "Load optimization agent, carrier coordination automation, delivery timing optimizer", source: "Industry estimates based on WMS/TMS adoption" },
+      "L3-COMPLY": { title: "Batch Records (eBR)", layer: "L3 Operations", layerType: "digital", opp: "45%", priority: "med", desc: "Electronic Batch Records for regulated industries. Batch review and deviation handling require manual review.", systems: ["MES", "eBR", "Batch Records", "Compliance"], agents: "Batch review assistant, deviation analyzer, release decision support", source: "Industry estimates based on eBR adoption" },
+      "L3-FINANCE": { title: "Performance (OEE)", layer: "L3 Operations", layerType: "digital", opp: "65%", priority: "low", desc: "OEE tracking and performance reporting. Loss categorization and root cause analysis rely on manual analysis.", systems: ["OEE", "BI", "Performance", "Loss Tracking"], agents: "Loss categorization agent, OEE improvement advisor, downtime analyzer", source: "Industry estimates based on OEE tracking maturity" },
+
+      "L2-DESIGN": { title: "Control Configuration", layer: "L2 Controls", layerType: "physical", opp: "35%", priority: "med", desc: "PLC and DCS programming. Control logic design requires specialized tools but documentation and version management are often manual.", systems: ["PLC", "DCS", "HMI", "Control Engineering"], agents: "Configuration documentation agent, version control automation, change impact analyzer", source: "Industry estimates based on control engineering practices" },
+      "L2-MAKE": { title: "Operator Control (HMI)", layer: "L2 Controls", layerType: "physical", opp: "70%", priority: "high", desc: "Manual operator intervention via HMI vs. Advanced Process Control (APC). APC penetration: Refineries ~70-80%, Chemicals ~40-50%, Discrete Mfg <10%. Operators manually adjust setpoints and respond to alarms for ~70% of general industrial operations.", systems: ["HMI", "DCS", "SCADA", "APC", "Control Room"], agents: "Setpoint optimization advisor, alarm prioritization agent, process optimization recommender, automated routine adjustment", source: "Control Engineering - APC adoption limited outside refineries" },
+      "L2-MAINTAIN": { title: "Control Health", layer: "L2 Controls", layerType: "physical", opp: "50%", priority: "high", desc: "Control system health monitoring. Loop performance monitoring and valve diagnostics often rely on manual periodic analysis.", systems: ["SCADA", "PLC", "Diagnostics", "Loop Performance"], agents: "Loop performance monitor, valve diagnostic analyzer, instrument health predictor", source: "Industry estimates based on control system maintenance" },
+      "L2-QUALITY": { title: "Process Monitoring", layer: "L2 Controls", layerType: "physical", opp: "40%", priority: "med", desc: "Process historian and real-time monitoring. Trend analysis and anomaly detection require manual analysis by process engineers.", systems: ["Historian", "Process Data", "Trending", "Analytics"], agents: "Anomaly detection agent, correlation analyzer, golden batch identifier", source: "Industry estimates based on historian utilization" },
+      "L2-COMPLY": { title: "Safety Systems (SIS)", layer: "L2 Controls", layerType: "physical", opp: "55%", priority: "high", desc: "Safety Instrumented Systems and alarm management. Alarm rationalization and SIS testing require significant manual engineering.", systems: ["SIS", "Alarms", "Safety", "LOPA"], agents: "Alarm rationalization advisor, SIS test scheduler, alarm response prioritizer", source: "Industry estimates based on alarm management studies" },
+
+      "L1-SOURCE": { title: "RFID Receiving", layer: "L1 Sensors", layerType: "physical", opp: "35%", priority: "med", desc: "RFID and barcode-based receiving. Exception handling and read failures require manual intervention.", systems: ["RFID", "Barcode", "WMS", "Track & Trace"], agents: "Read exception handler, tag assignment optimizer, inventory reconciliation agent", source: "Industry estimates based on RFID adoption" },
+      "L1-MAKE": { title: "Process Sensors", layer: "L1 Sensors", layerType: "physical", opp: "30%", priority: "high", desc: "Process instrumentation. While sensors are automated, calibration scheduling and sensor health monitoring require manual oversight.", systems: ["IoT", "SCADA", "Sensors", "Instrumentation"], agents: "Calibration scheduler, sensor health monitor, measurement validation agent", source: "Industry estimates based on instrumentation practices" },
+      "L1-MAINTAIN": { title: "Condition Monitoring", layer: "L1 Sensors", layerType: "physical", opp: "55%", priority: "high", desc: "Vibration analysis and thermal monitoring. Analysis interpretation and maintenance triggering require manual expert analysis.", systems: ["Vibration", "Thermal", "APM", "CBM"], agents: "Vibration pattern analyzer, thermal anomaly detector, predictive maintenance advisor", source: "Industry estimates based on CBM adoption" },
+      "L1-QUALITY": { title: "Inspection (Vision/NDT)", layer: "L1 Sensors", layerType: "physical", opp: "40%", priority: "high", desc: "Machine vision and NDT inspection. Defect classification and false positive handling require manual expert involvement.", systems: ["Vision", "NDT", "Inspection", "Metrology"], agents: "Defect classifier, inspection recipe optimizer, false positive reducer", source: "Industry estimates based on automated inspection adoption" },
+      "L1-DELIVER": { title: "Tracking (RFID/GPS)", layer: "L1 Sensors", layerType: "physical", opp: "35%", priority: "med", desc: "Asset and shipment tracking. Exception identification and ETA prediction require manual monitoring.", systems: ["RFID", "GPS", "Tracking", "Visibility"], agents: "ETA prediction agent, route deviation alerter, delivery exception handler", source: "Industry estimates based on tracking system adoption" },
+      "L1-COMPLY": { title: "Environmental Monitoring", layer: "L1 Sensors", layerType: "physical", opp: "50%", priority: "med", desc: "EHS sensor monitoring. Emissions monitoring and compliance tracking involve manual data collection and reporting.", systems: ["EHS", "IoT", "Emissions", "Safety Sensors"], agents: "Emissions monitoring agent, compliance reporting automation, environmental trend analyzer", source: "Industry estimates based on EHS monitoring practices" },
+
+      "L0-DESIGN": { title: "Digital Twin", layer: "L0 Equipment", layerType: "physical", opp: "30%", priority: "med", desc: "Physics-based simulation and digital twins. Many organizations rely on traditional simulation with manual model updates.", systems: ["Simulation", "Digital Twin", "Physics Models"], agents: "Model calibration agent, what-if scenario runner, twin synchronization", source: "Industry estimates based on digital twin adoption" },
+      "L0-SOURCE": { title: "AGV Receipt", layer: "L0 Equipment", layerType: "physical", opp: "25%", priority: "med", desc: "AGV material handling for inbound. Traffic management and exception handling require manual oversight.", systems: ["AGV", "WCS", "AMR", "Material Handling"], agents: "Traffic optimization agent, route planner, exception handler", source: "Industry estimates based on AGV adoption" },
+      "L0-MAKE": { title: "Production Assets", layer: "L0 Equipment", layerType: "physical", opp: "45%", priority: "high", desc: "Physical production equipment - CNC, robots, assembly, reactors, heavy equipment. Asset coordination and performance tuning require manual operator intervention.", systems: ["CNC", "Robots", "Reactors", "Heavy Equipment"], agents: "Setup optimization agent, asset coordination, performance tuning advisor", source: "Industry estimates based on asset automation levels" },
+      "L0-MAINTAIN": { title: "Asset Service", layer: "L0 Equipment", layerType: "physical", opp: "60%", priority: "high", desc: "Physical maintenance execution - repairs, overhauls, calibration. Remain heavily manual requiring skilled technicians.", systems: ["CMMS", "Tools", "Maintenance", "Calibration"], agents: "Maintenance procedure guide, parts identification assistant, repair documentation automation", source: "Industry estimates based on maintenance execution" },
+      "L0-QUALITY": { title: "Physical Measurement", layer: "L0 Equipment", layerType: "physical", opp: "50%", priority: "med", desc: "CMM and NDT physical measurement. Program development and results interpretation require manual expert involvement.", systems: ["CMM", "NDT", "Metrology", "Gauging"], agents: "Measurement program optimizer, fixture setup assistant, results interpreter", source: "Industry estimates based on metrology practices" },
+      "L0-DELIVER": { title: "Material Flow", layer: "L0 Equipment", layerType: "physical", opp: "35%", priority: "med", desc: "AMR and conveyor systems. System coordination and throughput optimization require manual oversight.", systems: ["AMR", "Conveyor", "WCS", "Material Flow"], agents: "Flow optimization agent, conveyor coordination, throughput optimizer", source: "Industry estimates based on material handling automation" },
+      "L0-COMPLY": { title: "Safety Devices", layer: "L0 Equipment", layerType: "physical", opp: "40%", priority: "low", desc: "Physical safety devices - gates, light curtains, interlocks. Testing and compliance verification require manual procedures.", systems: ["Safety Gates", "Light Curtains", "Interlocks", "SIS"], agents: "Safety device test scheduler, inspection automation, compliance verification", source: "Industry estimates based on machine safety practices" },
+
+      "L-1-SOURCE": { title: "Unloading & Putaway", layer: "L-1 Labor", layerType: "labor", opp: "85%", priority: "high", desc: "Manual unloading of trucks, containers, and pallets. Putaway operations moving materials to storage locations. This is a prime target for humanoid robotics - repetitive, physical, often in unstructured environments. Currently requires significant human labor with forklifts and pallet jacks.", systems: ["Humanoid Robots", "Cobots", "Forklifts", "Pallet Jacks"], agents: "Humanoid task orchestration, unloading sequence optimizer, putaway location selector, human-robot collaboration coordinator", source: "BLS labor statistics - warehouse labor; Humanoid robotics market analysis" },
+      "L-1-MAKE": { title: "Assembly & Operation", layer: "L-1 Labor", layerType: "labor", opp: "90%", priority: "high", desc: "Manual assembly tasks including picking, placing, fastening, wiring, and machine operation. The highest manual % in the entire stack. Cobots handle some tasks but most assembly remains human. Humanoids could transform this - Figure AI, Tesla Optimus, and others targeting this space.", systems: ["Humanoid Robots", "Cobots", "Assembly Lines", "Manual Stations"], agents: "Assembly task sequencer, cobot coordination agent, human-robot handoff optimizer, dexterity task allocator", source: "BLS manufacturing labor statistics; Boston Consulting Group assembly automation studies" },
+      "L-1-MAINTAIN": { title: "Repair & Service", layer: "L-1 Labor", layerType: "labor", opp: "75%", priority: "high", desc: "Physical repair work, parts replacement, cleaning, lubrication, and equipment servicing. Requires skilled technicians with tools. Lower than assembly because some diagnostic work is digital, but physical execution remains manual. Humanoids could assist but need significant dexterity advances.", systems: ["Technicians", "Tools", "Diagnostic Equipment", "Spare Parts"], agents: "Repair procedure guide, technician assistant agent, parts identification, tool selection optimizer", source: "BLS maintenance occupations; Industry maintenance labor studies" },
+      "L-1-QUALITY": { title: "Manual QC Inspection", layer: "L-1 Labor", layerType: "labor", opp: "80%", priority: "high", desc: "Human visual inspection, tactile assessment, sample handling, and test execution. Inspectors check for defects machines can't easily detect - surface finish, cosmetic issues, assembly completeness. Machine vision handles some, but human judgment remains critical for many quality decisions.", systems: ["Inspectors", "Gauges", "Test Equipment", "Sample Handling"], agents: "Inspection guidance agent, defect documentation automation, quality decision support, inspector training assistant", source: "BLS quality control occupations; Manufacturing quality labor studies" },
+      "L-1-DELIVER": { title: "Pick, Pack & Load", layer: "L-1 Labor", layerType: "labor", opp: "85%", priority: "high", desc: "Order picking from shelves/bins, packing items for shipment, and loading trucks/containers. Amazon and others have automated some picking with Kiva robots, but most warehouses remain manual. Each-picking (individual items) is hardest to automate. Prime humanoid target.", systems: ["Humanoid Robots", "Pick-to-Light", "Packing Stations", "Loading Docks"], agents: "Pick path optimizer, pack configuration agent, load sequence planner, humanoid picking orchestrator", source: "BLS warehouse labor; MHI annual industry report; Amazon robotics analysis" },
+      "L-1-SUPPORT": { title: "Field Installation & Repair", layer: "L-1 Labor", layerType: "labor", opp: "70%", priority: "med", desc: "On-site installation, commissioning, and repair at customer locations. Field technicians travel to sites, diagnose issues, and perform physical repairs. Harder to automate than factory work due to unstructured environments and travel. Remote diagnostics help but physical presence usually required.", systems: ["Field Technicians", "Service Vehicles", "Mobile Tools", "Remote Diagnostics"], agents: "Field service routing optimizer, remote diagnostic assistant, installation guide agent, parts forecasting", source: "BLS field service occupations; Service industry labor studies" },
+      "L-1-COMPLY": { title: "Safety Watch & Monitoring", layer: "L-1 Labor", layerType: "labor", opp: "60%", priority: "med", desc: "Human safety observers, confined space attendants, fire watch, and security personnel. Required by regulations in many hazardous operations. Some monitoring can be automated with sensors/cameras, but human judgment and intervention capability often legally required. Drones and robots increasingly supplementing.", systems: ["Safety Personnel", "Security", "Cameras", "Drones"], agents: "Safety monitoring agent, incident detection, compliance verification, hazard alerting", source: "OSHA requirements; BLS safety occupations; Security industry analysis" }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-slate-900 rounded-xl p-6 text-white text-center">
+          <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 mb-2">
+            Industrial AI Value Chain Heatmap
+          </h1>
+          <p className="text-slate-400 text-sm">AgentOS Full-Stack Autonomy Map — Click any cell for details | L-1 = Humanoid/Cobot Frontier</p>
+        </div>
+
+        {/* Legend */}
+        <div className="flex flex-wrap items-center gap-6 justify-center text-sm text-slate-600 bg-white p-4 rounded-lg border border-slate-200">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-green-500"></div> High Priority
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-yellow-500"></div> Medium Priority
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-slate-700"></div> Low / None
+          </div>
+          <div className="ml-4 font-bold text-red-500 decoration-red-500">
+            XX% <span className="text-slate-500 font-normal text-xs">= Manual Dependency Today</span>
+          </div>
+        </div>
+
+        {/* Heatmap Grid */}
+        <div className="flex gap-2 isolate">
+          <div className="flex-1 overflow-x-auto pb-4">
+            <div className="grid grid-cols-[80px_repeat(10,minmax(100px,1fr))] gap-1 min-w-[800px]">
+
+              {/* Header Row */}
+              <div className="p-2"></div>
+              {valueChain.map(vc => (
+                <div key={vc} className="flex items-center justify-center text-[10px] font-bold text-slate-400 tracking-wider">
+                  {vc}
+                </div>
+              ))}
+
+              {layers.map((layer, layerIdx) => {
+                const isDigital = layer.type === 'digital';
+                const isPhysical = layer.type === 'physical';
+                const isLabor = layer.type === 'labor';
+                const layerColor = isDigital ? 'text-orange-500' : isPhysical ? 'text-purple-500' : 'text-cyan-500';
+                const badgeBg = isDigital ? 'bg-orange-500/10' : isPhysical ? 'bg-purple-500/10' : 'bg-cyan-500/10';
+
+                return (
+                  <React.Fragment key={layer.id}>
+                    {layerIdx === 3 && (
+                      <div className="col-span-full h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full my-1"></div>
+                    )}
+                    {layerIdx === 6 && (
+                      <div className="col-span-full h-1 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full my-1"></div>
+                    )}
+
+                    <div className="flex flex-col justify-center px-2 py-1">
+                      <span className={`text-md font-bold ${layerColor}`}>{layer.id}</span>
+                      <span className="text-[9px] text-slate-400 leading-tight">{layer.name}</span>
+                    </div>
+
+                    {valueChain.map(vc => {
+                      const key = `${layer.id}-${vc}`;
+                      const cell = cellData[key];
+
+                      if (!cell) {
+                        return <div key={key} className="bg-slate-800 rounded-md"></div>;
+                      }
+
+                      const priorityClass = cell.priority === 'high' ? 'bg-green-500' : cell.priority === 'med' ? 'bg-yellow-500' : 'bg-slate-700';
+                      const textClass = cell.priority === 'high' || cell.priority === 'med' ? 'text-slate-900' : 'text-slate-300';
+                      const subTextClass = cell.priority === 'high' || cell.priority === 'med' ? 'text-slate-900/60' : 'text-slate-500';
+                      const oppClass = cell.priority === 'low' ? 'text-red-500' : 'text-red-900 font-extrabold';
+
+                      return (
+                        <div
+                          key={key}
+                          onClick={() => setSelectedCell(cell)}
+                          className={`${priorityClass} rounded-md p-1.5 min-h-[60px] cursor-pointer hover:scale-105 hover:shadow-xl transition-all duration-200 relative group flex flex-col justify-between`}
+                        >
+                          <div className={`text-[9px] font-bold leading-none mb-1 ${textClass}`}>
+                            {cell.title.replace(/\(.*\)/, '')}
+                          </div>
+                          <div className={`text-xs ${oppClass}`}>
+                            {cell.opp}
+                          </div>
+                          <div className={`text-[7px] font-semibold truncate ${subTextClass}`}>
+                            {cell.systems[0]}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Sidebar Visual */}
+          <div className="w-8 flex flex-col gap-1.5 text-[9px] font-bold text-center tracking-widest pt-[26px]">
+            <div className="flex-1 rounded border-2 border-orange-400/50 bg-orange-400/20 text-orange-500 flex items-center justify-center [writing-mode:vertical-rl]">DIGITAL</div>
+            <div className="flex-1 rounded border-2 border-purple-400/50 bg-purple-400/20 text-purple-500 flex items-center justify-center [writing-mode:vertical-rl]">PHYSICAL</div>
+            <div className="flex-1 rounded border-2 border-cyan-400/50 bg-cyan-400/20 text-cyan-500 flex items-center justify-center [writing-mode:vertical-rl] min-h-[100px]">LABOR</div>
+          </div>
+        </div>
+
+        <div className="text-center text-xs text-slate-500 mt-4">
+          Sources: Gartner 2024, LevaData, BluJay Solutions, Control Engineering, BLS Labor Statistics | L-1 represents the humanoid robotics and cobot opportunity frontier
+        </div>
+
+        {/* Modal */}
+        {selectedCell && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4" onClick={() => setSelectedCell(null)}>
+            <div className="bg-slate-900 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-700" onClick={e => e.stopPropagation()}>
+              <div className="p-5 border-b border-slate-700 flex justify-between items-start">
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-1">{selectedCell.title}</h2>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider
+                                ${selectedCell.layerType === 'digital' ? 'text-orange-400 bg-orange-400/10' :
+                      selectedCell.layerType === 'physical' ? 'text-purple-400 bg-purple-400/10' :
+                        'text-cyan-400 bg-cyan-400/10'}`}>
+                    {selectedCell.layer}
+                  </span>
+                </div>
+                <button onClick={() => setSelectedCell(null)} className="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div className="bg-gradient-to-br from-red-900/50 to-red-800/30 rounded-lg p-4 text-center border border-red-900/50">
+                  <div className="text-4xl font-extrabold text-red-400">{selectedCell.opp}</div>
+                  <div className="text-xs text-red-300/80 uppercase tracking-widest mt-1">Manual Dependency Today</div>
+                </div>
+
+                <div>
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Priority</h3>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold
+                                ${selectedCell.priority === 'high' ? 'bg-green-500 text-slate-900' :
+                      selectedCell.priority === 'med' ? 'bg-yellow-500 text-slate-900' : 'bg-slate-700 text-slate-300'}`}>
+                    {selectedCell.priority === 'high' ? 'High Priority' : selectedCell.priority === 'med' ? 'Medium Priority' : 'Low Priority'}
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Description</h3>
+                  <p className="text-slate-300 text-sm leading-relaxed">{selectedCell.desc}</p>
+                </div>
+
+                <div>
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Systems / Technology</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCell.systems.map(s => (
+                      <span key={s} className="px-2 py-1 bg-slate-800 rounded text-xs text-slate-300 border border-slate-700">{s}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-xs font-bold text-orange-500 uppercase tracking-wider mb-2">Agent / Automation Opportunities</h3>
+                  <p className="text-orange-300/90 text-sm leading-relaxed italic">{selectedCell.agents}</p>
+                </div>
+
+                <div className="pt-4 border-t border-slate-800 text-xs text-slate-600">
+                  Source: {selectedCell.source}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+    );
+  };
+
   // TAB: OTHER RESOURCES
   // ============================================
 
@@ -8323,44 +8984,85 @@ const PhysicalAIFramework = () => {
 
   return (
     <div className="p-4 bg-slate-50 min-h-screen font-sans text-slate-800" >
-      <h1 className="text-3xl font-extrabold text-center mb-2 tracking-tight text-slate-900">Physical & Industrial AI Reference Guide</h1>
-      <p className="text-center text-slate-500 mb-6 text-sm max-w-2xl mx-auto">Founder reference guide to Physical and Industrial AI, helping us get up to speed fast and have deeper strategic discussions.</p>
-
-      {/* Tab Navigation */}
-      <div className="flex flex-wrap gap-2 mb-4 justify-center" >
-        {
-          tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => { setActiveTab(tab.id); setSelectedCell(null); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-100'
-                : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200 shadow-sm hover:shadow'
-                }`}
-            >
-              {tab.icon} {tab.name}
-            </button>
-          ))
+      {/* Dynamic Title based on active section */}
+      <h1 className="text-3xl font-extrabold text-center mb-2 tracking-tight text-slate-900">
+        {activeSection === 'guide' ? 'Physical & Industrial AI Reference Guide' : 'Physical AI Opportunity Map'}
+      </h1>
+      <p className="text-center text-slate-500 mb-4 text-sm max-w-2xl mx-auto">
+        {activeSection === 'guide'
+          ? 'Founder reference guide to Physical and Industrial AI, helping us get up to speed fast and have deeper strategic discussions.'
+          : 'Comprehensive view of labor economics, value drivers, and automation opportunities across industrial domains.'
         }
-      </div >
+      </p>
 
-      {/* Tab Content */}
-      < div className="bg-white rounded-lg shadow p-4" >
-        {activeTab === 'start' && <StartHereTab />}
-        {activeTab === 'matrix' && <MatrixTab />}
-        {activeTab === 'valuechain' && <ValueChainTab verticals={verticals} lifecycleData={lifecycleData} />}
-        {activeTab === 'framework' && <FrameworkTab />}
-        {activeTab === 'layers' && <LayersTab />}
-        {activeTab === 'industries' && <IndustriesTab />}
-        {activeTab === 'usecases' && <UseCasesTab />}
-        {activeTab === 'strategies' && <StrategiesTab />}
-        {activeTab === 'players' && <KeyPlayersTab />}
-        {activeTab === 'resources' && <OtherResourcesTab />}
-      </div >
+      {/* Master Section Navigation */}
+      <div className="flex justify-center gap-4 mb-6">
+        <button
+          onClick={() => setActiveSection('guide')}
+          className={`px-6 py-3 rounded-xl text-lg font-bold transition-all duration-300 ${activeSection === 'guide'
+            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
+            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 shadow-sm'
+            }`}
+        >
+          📘 Reference Guide
+        </button>
+        <button
+          onClick={() => setActiveSection('opportunity')}
+          className={`px-6 py-3 rounded-xl text-lg font-bold transition-all duration-300 ${activeSection === 'opportunity'
+            ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg scale-105'
+            : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 shadow-sm'
+            }`}
+        >
+          📊 Opportunity Map
+        </button>
+      </div>
+
+      {/* Reference Guide Section */}
+      {activeSection === 'guide' && (
+        <>
+          {/* Tab Navigation */}
+          <div className="flex flex-wrap gap-2 mb-4 justify-center" >
+            {
+              tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => { setActiveTab(tab.id); setSelectedCell(null); }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id
+                    ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-100'
+                    : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200 shadow-sm hover:shadow'
+                    }`}
+                >
+                  {tab.icon} {tab.name}
+                </button>
+              ))
+            }
+          </div >
+
+          {/* Tab Content */}
+          < div className="bg-white rounded-lg shadow p-4" >
+            {activeTab === 'start' && <StartHereTab />}
+            {activeTab === 'matrix' && <MatrixTab />}
+            {activeTab === 'valuechain' && <ValueChainTab verticals={verticals} lifecycleData={lifecycleData} />}
+            {activeTab === 'heatmap' && <IndustrialHeatmapTab />}
+            {activeTab === 'framework' && <FrameworkTab />}
+            {activeTab === 'layers' && <LayersTab />}
+            {activeTab === 'industries' && <IndustriesTab />}
+            {activeTab === 'usecases' && <UseCasesTab />}
+            {activeTab === 'strategies' && <StrategiesTab />}
+            {activeTab === 'players' && <KeyPlayersTab />}
+            {activeTab === 'resources' && <OtherResourcesTab />}
+          </div >
+        </>
+      )}
+
+      {/* Opportunity Map Section */}
+      {activeSection === 'opportunity' && (
+        <OpportunityMapViewer />
+      )}
 
       {/* Footer */}
       < div className="mt-4 text-center text-xs text-gray-500" >
-        Physical & Industrial AI Reference Guide v5.0
+        {activeSection === 'guide' ? 'Physical & Industrial AI Reference Guide v5.0' : 'Physical AI Opportunity Map v1.0'}
       </div >
 
       {/* Chat Button */}
